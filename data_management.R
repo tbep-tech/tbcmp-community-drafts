@@ -280,13 +280,89 @@ colnames(df_single) <- col_names
 # ---- *---- Clean ----
 
 df_single <- df_single %>%
-  mutate(across(c(B19055_001E,B19055_002E),
+  mutate(across(c(DP02_0007PE,DP02_0011PE),
                 as.numeric)) %>%
   # calculate % of households that have single men or women with children
-  mutate(single = B19055_002E+B19055_001E) %>%
+  mutate(single = DP02_0007PE+DP02_0011PE) %>%
   rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
   select(tract, single)
+
+
+
+# ---- *-- Housing Cost Burden ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B25140)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_costs <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_costs) <- col_names
+
+# ---- *---- Clean ----
+
+df_costs <- df_costs %>%
+  mutate(across(c(B25140_001E,B25140_003E,B25140_007E,B25140_011E),
+                as.numeric)) %>%
+  # calculate % of households where housing costs are over 30% of household income
+  mutate(costs = (B25140_003E+B25140_007E+B25140_011E)/B25140_001E*100) %>%
+  rename(tract = GEO_ID) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, costs)
+
+
+
+# ---- *-- Disability ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B18101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_disabled <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_disabled) <- col_names
+
+# ---- *---- Clean ----
+
+df_disabled <- df_disabled %>%
+  mutate(across(c(B18101_001E,B18101_004E,B18101_007E,B18101_010E,B18101_013E,B18101_016E,B18101_019E,
+                  B18101_023E,B18101_026E,B18101_029E,B18101_032E,B18101_035E,B18101_038E),
+                as.numeric)) %>%
+  # calculate % of population with a disability
+  mutate(disabled = (B18101_004E+B18101_007E+B18101_010E+B18101_013E+B18101_016E+B18101_019E+
+                     B18101_023E+B18101_026E+B18101_029E+B18101_032E+B18101_035E+B18101_038E)/B18101_001E*100) %>%
+  rename(tract = GEO_ID) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, disabled)
+
+
+
+
+
+
+
+
 
 
 
