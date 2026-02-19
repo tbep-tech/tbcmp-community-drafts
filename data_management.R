@@ -154,9 +154,139 @@ df_language <- df_language %>%
   select(tract, language)
 
 
+####
+# ---- *-- Unemployment ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S2301)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_unemployed <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_unemployed) <- col_names
+
+# ---- *---- Clean ----
+
+df_unemployed <- df_unemployed %>%
+  mutate(across(c(S2301_C04_001E),
+                as.numeric)) %>%
+  rename(tract = GEO_ID,
+         unemployed = S2301_C04_001E) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, unemployed)
 
 
 
+####
+# ---- *-- Low Income ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1701)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_income <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_income) <- col_names
+
+# ---- *---- Clean ----
+
+df_income <- df_income %>%
+  mutate(across(c(S1701_C01_001E,S1701_C01_042E),
+                as.numeric)) %>%
+  # calculate % of population that is below 200% of the federal poverty line
+  mutate(income = (S1701_C01_042E)/S1701_C01_001E*100) %>%
+  rename(tract = GEO_ID) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, income)
+
+
+
+####
+# ---- *-- Social Security Income Households ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B19055)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_ssi <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_ssi) <- col_names
+
+# ---- *---- Clean ----
+
+df_ssi <- df_ssi %>%
+  mutate(across(c(B19055_001E,B19055_002E),
+                as.numeric)) %>%
+  # calculate % of households receiving social security income
+  mutate(ssi = (B19055_002E)/B19055_001E*100) %>%
+  rename(tract = GEO_ID) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, ssi)
+
+
+
+
+####
+# ---- *-- Single Parent Households ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5/profile?get=group(DP02)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_single <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_single) <- col_names
+
+# ---- *---- Clean ----
+
+df_single <- df_single %>%
+  mutate(across(c(B19055_001E,B19055_002E),
+                as.numeric)) %>%
+  # calculate % of households that have single men or women with children
+  mutate(single = B19055_002E+B19055_001E) %>%
+  rename(tract = GEO_ID) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, single)
 
 
 
