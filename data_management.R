@@ -296,7 +296,7 @@ df_language <- df_language %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1602)&ucgid=pseudo(0400000US12$1400000)"
+  "https://api.census.gov/data/2024/acs/acs5/profile?get=group(DP02)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
 )
 
 # Download data
@@ -399,7 +399,7 @@ df_disabled <- df_disabled %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B18101)&ucgid=pseudo(0400000US12$1400000)"
+  "https://api.census.gov/data/2020/dec/pl?get=group(P1)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
