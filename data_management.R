@@ -1,5 +1,3 @@
-
-
 # Load required packages (install as needed)
 library(httr)
 library(jsonlite)
@@ -56,14 +54,14 @@ df_population <- df_population %>%
 
 
 ####
-# ---- *-- Limited Education ----
+# ---- *-- Low Income ----
 ####
 
 # ---- *---- Download ----
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B15003)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1701)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
 )
 
 # Download data
@@ -73,32 +71,30 @@ content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
 col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
-df_education <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_education) <- col_names
+df_income <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_income) <- col_names
 
 # ---- *---- Clean ----
 
-df_education <- df_education %>%
-  mutate(across(c(B15003_001E,B15003_002E,B15003_003E,B15003_004E,B15003_005E,B15003_006E,B15003_007E,B15003_008E,
-                        B15003_009E,B15003_010E,B15003_011E,B15003_012E,B15003_013E,B15003_014E,B15003_015E,B15003_016E),
+df_income <- df_income %>%
+  mutate(across(c(S1701_C01_001E,S1701_C01_042E),
                 as.numeric)) %>%
-  # calculate % of population that did not complete high school
-  mutate(education = (B15003_002E+B15003_003E+B15003_004E+B15003_005E+B15003_006E+B15003_007E+B15003_008E+
-           B15003_009E+B15003_010E+B15003_011E+B15003_012E+B15003_013E+B15003_014E+B15003_015E+B15003_016E)/B15003_001E*100) %>%
+  # calculate % of population that is below 200% of the federal poverty line
+  mutate(income = (S1701_C01_042E)/S1701_C01_001E*100) %>%
   rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, education)
+  select(tract, income)
 
 
 ####
-# ---- *-- Vulnerable Age Groups ----
+# ---- *-- Social Security Income Households ----
 ####
 
 # ---- *---- Download ----
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S0101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B19055)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
 )
 
 # Download data
@@ -108,52 +104,20 @@ content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
 col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
-df_age <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_age) <- col_names
+df_ssi <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_ssi) <- col_names
 
 # ---- *---- Clean ----
 
-df_age <- df_age %>%
-  mutate(across(c(S0101_C01_001E,S0101_C01_002E,S0101_C01_015E,S0101_C01_016E,S0101_C01_017E,S0101_C01_018E,S0101_C01_019E),
+df_ssi <- df_ssi %>%
+  mutate(across(c(B19055_001E,B19055_002E),
                 as.numeric)) %>%
-  # calculate % of population that is under 5 or over 64 years old
-  mutate(age = (S0101_C01_002E+S0101_C01_015E+S0101_C01_016E+S0101_C01_017E+S0101_C01_018E+S0101_C01_019E)/S0101_C01_001E*100) %>%
+  # calculate % of households receiving social security income
+  mutate(ssi = (B19055_002E)/B19055_001E*100) %>%
   rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, age)
+  select(tract, ssi)
 
-
-
-####
-# ---- *-- Linguistically Isolated Households ----
-####
-
-# ---- *---- Download ----
-
-# API URL
-url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1602)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
-)
-
-# Download data
-response <- GET(url)
-stop_for_status(response)
-content_txt <- content(response, as = "text", encoding = "UTF-8")
-json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
-col_names <- unlist(json_raw[[1]])
-data_rows <- json_raw[-1]
-df_language <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_language) <- col_names
-
-# ---- *---- Clean ----
-
-df_language <- df_language %>%
-  mutate(across(c(S1602_C04_001E),
-                as.numeric)) %>%
-  rename(tract = GEO_ID,
-         language = S1602_C04_001E) %>%
-  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, language)
 
 
 ####
@@ -189,15 +153,14 @@ df_unemployed <- df_unemployed %>%
 
 
 
-####
-# ---- *-- Low Income ----
+# ---- *-- Housing Cost Burden ----
 ####
 
 # ---- *---- Download ----
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1701)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B25140)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
 )
 
 # Download data
@@ -207,31 +170,31 @@ content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
 col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
-df_income <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_income) <- col_names
+df_costs <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_costs) <- col_names
 
 # ---- *---- Clean ----
 
-df_income <- df_income %>%
-  mutate(across(c(S1701_C01_001E,S1701_C01_042E),
+df_costs <- df_costs %>%
+  mutate(across(c(B25140_001E,B25140_003E,B25140_007E,B25140_011E),
                 as.numeric)) %>%
-  # calculate % of population that is below 200% of the federal poverty line
-  mutate(income = (S1701_C01_042E)/S1701_C01_001E*100) %>%
+  # calculate % of households where housing costs are over 30% of household income
+  mutate(costs = (B25140_003E+B25140_007E+B25140_011E)/B25140_001E*100) %>%
   rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, income)
+  select(tract, costs)
 
 
 
 ####
-# ---- *-- Social Security Income Households ----
+# ---- *-- Mobile Homes ----
 ####
 
 # ---- *---- Download ----
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B19055)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
 )
 
 # Download data
@@ -241,20 +204,87 @@ content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
 col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
-df_ssi <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_ssi) <- col_names
+df_mobile <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_mobile) <- col_names
 
 # ---- *---- Clean ----
 
-df_ssi <- df_ssi %>%
-  mutate(across(c(B19055_001E,B19055_002E),
+df_mobile <- df_mobile %>%
+  mutate(across(c(S1101_C01_017E),
                 as.numeric)) %>%
-  # calculate % of households receiving social security income
-  mutate(ssi = (B19055_002E)/B19055_001E*100) %>%
+  rename(tract = GEO_ID,
+         mobile = S1101_C01_017E) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, mobile)
+
+
+
+####
+# ---- *-- Limited Education ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B15003)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_education <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_education) <- col_names
+
+# ---- *---- Clean ----
+
+df_education <- df_education %>%
+  mutate(across(c(B15003_001E,B15003_002E,B15003_003E,B15003_004E,B15003_005E,B15003_006E,B15003_007E,B15003_008E,
+                        B15003_009E,B15003_010E,B15003_011E,B15003_012E,B15003_013E,B15003_014E,B15003_015E,B15003_016E),
+                as.numeric)) %>%
+  # calculate % of population that did not complete high school
+  mutate(education = (B15003_002E+B15003_003E+B15003_004E+B15003_005E+B15003_006E+B15003_007E+B15003_008E+
+           B15003_009E+B15003_010E+B15003_011E+B15003_012E+B15003_013E+B15003_014E+B15003_015E+B15003_016E)/B15003_001E*100) %>%
   rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, ssi)
+  select(tract, education)
 
+
+
+####
+# ---- *-- Linguistically Isolated Households ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1602)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_language <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_language) <- col_names
+
+# ---- *---- Clean ----
+
+df_language <- df_language %>%
+  mutate(across(c(S1602_C04_001E),
+                as.numeric)) %>%
+  rename(tract = GEO_ID,
+         language = S1602_C04_001E) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, language)
 
 
 
@@ -292,14 +322,15 @@ df_single <- df_single %>%
 
 
 
-# ---- *-- Housing Cost Burden ----
+####
+# ---- *-- Vulnerable Age Groups ----
 ####
 
 # ---- *---- Download ----
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B25140)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S0101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
 )
 
 # Download data
@@ -309,19 +340,20 @@ content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
 col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
-df_costs <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_costs) <- col_names
+df_age <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_age) <- col_names
 
 # ---- *---- Clean ----
 
-df_costs <- df_costs %>%
-  mutate(across(c(B25140_001E,B25140_003E,B25140_007E,B25140_011E),
+df_age <- df_age %>%
+  mutate(across(c(S0101_C01_001E,S0101_C01_002E,S0101_C01_015E,S0101_C01_016E,S0101_C01_017E,S0101_C01_018E,S0101_C01_019E),
                 as.numeric)) %>%
-  # calculate % of households where housing costs are over 30% of household income
-  mutate(costs = (B25140_003E+B25140_007E+B25140_011E)/B25140_001E*100) %>%
+  # calculate % of population that is under 5 or over 64 years old
+  mutate(age = (S0101_C01_002E+S0101_C01_015E+S0101_C01_016E+S0101_C01_017E+S0101_C01_018E+S0101_C01_019E)/S0101_C01_001E*100) %>%
   rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, costs)
+  select(tract, age)
+
 
 
 
@@ -357,39 +389,6 @@ df_disabled <- df_disabled %>%
   rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
   select(tract, disabled)
-
-
-
-####
-# ---- *-- Mobile Homes ----
-####
-
-# ---- *---- Download ----
-
-# API URL
-url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
-)
-
-# Download data
-response <- GET(url)
-stop_for_status(response)
-content_txt <- content(response, as = "text", encoding = "UTF-8")
-json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
-col_names <- unlist(json_raw[[1]])
-data_rows <- json_raw[-1]
-df_mobile <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_mobile) <- col_names
-
-# ---- *---- Clean ----
-
-df_mobile <- df_mobile %>%
-  mutate(across(c(S1101_C01_017E),
-                as.numeric)) %>%
-  rename(tract = GEO_ID,
-         mobile = S1101_C01_017E) %>%
-  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, mobile)
 
 
 ####
@@ -526,7 +525,7 @@ df_lifeexpect <- df_lifeexpect %>%
     county_name == "Washington County, FL" ~ paste0("12133", full_ct_num),
     TRUE ~ full_ct_num)) %>% # keeps values unchanged if they don't match conditions
   rename(lifeexpect = le) %>%
-  select(tract, lifexpect)
+  select(tract, lifeexpect)
 
 
 
@@ -591,6 +590,78 @@ tampabay %>%
 
 # When you're done, clean up by deleting the temporary folders you created for the full tract data
 unlink(temp_dir, recursive = TRUE)
+
+
+
+#********************************************************
+#********************************************************
+#********************************************************
+#********************************************************
+#********************************************************
+
+# ---- Create attribute table ----
+
+# Combine the datasets
+merged_data <- df_population %>%
+  full_join(df_income, by = "tract") %>%
+  full_join(df_ssi, by = "tract") %>%
+  full_join(df_unemployed, by = "tract") %>%
+  full_join(df_costs, by = "tract") %>%
+  full_join(df_mobile, by = "tract") %>%
+  full_join(df_education, by = "tract") %>%
+  full_join(df_language, by = "tract") %>%
+  full_join(df_single, by = "tract") %>%
+  full_join(df_age, by = "tract") %>%
+  full_join(df_disabled, by = "tract") %>%
+  full_join(df_uninsured, by = "tract") %>%
+  full_join(df_lifeexpect, by = "tract")
+
+
+# ---- *---- Calculate percentiles for each variable ----
+
+mydata <- merged_data %>%
+  # calculate percentiles for each variable
+  mutate(income_pct = if_else(is.na(income), NA_real_, percent_rank(income)*100),
+         ssi_pct = if_else(is.na(ssi), NA_real_, percent_rank(ssi)*100),
+         unemployed_pct = if_else(is.na(unemployed), NA_real_, percent_rank(unemployed)*100),
+         costs_pct = if_else(is.na(costs), NA_real_, percent_rank(costs)*100),
+         mobile_pct = if_else(is.na(mobile), NA_real_, percent_rank(mobile)*100),
+         education_pct = if_else(is.na(education), NA_real_, percent_rank(education)*100),
+         language_pct = if_else(is.na(language), NA_real_, percent_rank(language)*100),
+         single_pct = if_else(is.na(single), NA_real_, percent_rank(single)*100),
+         age_pct = if_else(is.na(age), NA_real_, percent_rank(age)*100),
+         disabled_pct = if_else(is.na(disabled), NA_real_, percent_rank(disabled)*100),
+         uninsured_pct = if_else(is.na(uninsured), NA_real_, percent_rank(uninsured)*100),
+         lifeexpect_pct = if_else(is.na(lifeexpect), NA_real_, percent_rank(lifeexpect)*100)) %>%
+  # flag if variable meets the criteria (>=80th or <=20th percentile, depending on variable)
+  mutate(burden_income = if_else(income_pct >= 80, 1, 0, missing = 0),
+         burden_ssi = if_else(ssi_pct >= 80, 1, 0, missing = 0),
+         burden_unemployed = if_else(unemployed_pct >= 80, 1, 0, missing = 0),
+         burden_costs = if_else(costs_pct >= 80, 1, 0, missing = 0),
+         burden_mobile = if_else(mobile_pct >= 80, 1, 0, missing = 0),
+         burden_education = if_else(education_pct >= 80, 1, 0, missing = 0),
+         burden_language = if_else(language_pct >= 80, 1, 0, missing = 0),
+         burden_single = if_else(single_pct >= 80, 1, 0, missing = 0),
+         burden_age = if_else(age_pct >= 80, 1, 0, missing = 0),
+         burden_disabled = if_else(disabled_pct >= 80, 1, 0, missing = 0),
+         burden_uninsured = if_else(uninsured_pct >= 80, 1, 0, missing = 0),
+         burden_lifeexpect = if_else(lifeexpect_pct <= 20, 1, 0, missing = 0)) %>%
+  # calculate the total number of burdens experience in each census tract
+  mutate(total_burdens = rowSums(across(burden_income:burden_lifeexpect), na.rm = TRUE))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
