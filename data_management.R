@@ -4,6 +4,8 @@
 library(httr)
 library(jsonlite)
 library(tidyverse)
+library(sf)
+library(leaflet)
 
 # ---- Download and clean tract-level data from 2024 American Community Survey (U.S. Census Bureau) ----
 
@@ -534,19 +536,61 @@ df_lifeexpect <- df_lifeexpect %>%
 # ---- *---- Download ----
 
 # API URL
-url <-"https://data.cdc.gov/resource/5h56-n989.csv?$limit=50000"
+url <- "https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_tract_500k.zip"
 
-# Download CSV and convert to data frame
-df_lifeexpect <- read.csv(url, stringsAsFactors = FALSE)
+# Create a temporary directory
+temp_dir <- tempfile()
+dir.create(temp_dir)
+
+# Define path to save the zip file
+zip_path <- file.path(temp_dir, "cb_2024_us_tract_500k.zip")
+
+# Download the file
+download.file(url, destfile = zip_path, mode = "wb")
+
+# Unzip the contents
+unzip(zip_path, exdir = temp_dir)
+
+# Find and read the .shp file
+shp_file <- list.files(temp_dir, pattern = "\\.shp$", full.names = TRUE)
+tract_sf <- st_read(shp_file)
+
+# Convert to WGS84 for viewing with leaflet
+tract_wgs84 <- st_transform(tract_sf, crs = 4326)
 
 # ---- *---- Clean ----
 
+tampabay <- tract_wgs84 %>%
+  # keep only census tracts in Florda
+  filter(STATE_NAME == "Florida") %>%
+  # keep only census tracts in Tampa Bay Coastal Master Plan counties
+  filter(NAMELSADCO == "Citrus County" | NAMELSADCO == "Hernando County" | 
+           NAMELSADCO == "Hillsborough County" | NAMELSADCO == "Manatee County" | 
+           NAMELSADCO == "Pasco County" | NAMELSADCO == "Pinellas County" | 
+           NAMELSADCO == "Sarasota County")
+
+# View the census tracts with leaflet
+tampabay %>%
+  select(GEOID) %>% 
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "blue",
+    fillOpacity = 0.5,
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    popup = ~GEOID, 
+    group = "Census Tract"
+  ) %>%
+  addLayersControl(
+    overlayGroups = "Census Tract",
+    options = layersControlOptions(collapsed = FALSE)
+  )
 
 
-
-
-
-
+# When you're done, clean up by deleting the temporary folders you created for the full tract data
+unlink(temp_dir, recursive = TRUE)
 
 
 
@@ -554,5 +598,3 @@ df_lifeexpect <- read.csv(url, stringsAsFactors = FALSE)
 
 # Write CSV
 write.csv(df, "census_data.csv", row.names = FALSE)
-
-message("CSV saved successfully.")
