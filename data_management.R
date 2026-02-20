@@ -529,6 +529,29 @@ df_lifeexpect <- df_lifeexpect %>%
 
 
 
+# ---- Download and clean census tract spatial data from the Cartographic Boundary Files (GENZ2024, U.S. Census TIGER) ----
+
+# ---- *---- Download ----
+
+# API URL
+url <-"https://data.cdc.gov/resource/5h56-n989.csv?$limit=50000"
+
+# Download CSV and convert to data frame
+df_lifeexpect <- read.csv(url, stringsAsFactors = FALSE)
+
+# ---- *---- Clean ----
+
+
+
+
+
+
+
+
+
+
+
+
 # Write CSV
 write.csv(df, "census_data.csv", row.names = FALSE)
 
