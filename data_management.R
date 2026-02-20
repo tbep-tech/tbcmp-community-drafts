@@ -15,7 +15,7 @@ library(leaflet)
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B01003)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B01003)&ucgid=pseudo(0400000US12$1400000)"
   )
 
 # Download data
@@ -61,7 +61,7 @@ df_population <- df_population %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1701)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1701)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -94,7 +94,7 @@ df_income <- df_income %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B19055)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B19055)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -128,7 +128,7 @@ df_ssi <- df_ssi %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S2301)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S2301)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -160,7 +160,7 @@ df_unemployed <- df_unemployed %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B25140)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B25140)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -194,7 +194,7 @@ df_costs <- df_costs %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1101)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -227,7 +227,7 @@ df_mobile <- df_mobile %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B15003)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B15003)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -263,7 +263,7 @@ df_education <- df_education %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1602)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1602)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -296,7 +296,7 @@ df_language <- df_language %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/profile?get=group(DP02)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1602)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -330,7 +330,7 @@ df_single <- df_single %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S0101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S0101)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -364,7 +364,7 @@ df_age <- df_age %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5?get=group(B18101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B18101)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
@@ -399,7 +399,7 @@ df_disabled <- df_disabled %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S2701)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B18101)&ucgid=pseudo(0400000US12$1400000)"
 )
 
 # Download data
