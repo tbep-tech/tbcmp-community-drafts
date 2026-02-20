@@ -358,10 +358,173 @@ df_disabled <- df_disabled %>%
 
 
 
+####
+# ---- *-- Mobile Homes ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S1101)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_mobile <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_mobile) <- col_names
+
+# ---- *---- Clean ----
+
+df_mobile <- df_mobile %>%
+  mutate(across(c(S1101_C01_017E),
+                as.numeric)) %>%
+  rename(tract = GEO_ID,
+         mobile = S1101_C01_017E) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, mobile)
+
+
+####
+# ---- *-- No Health Insurance ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5/subject?get=group(S2701)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_uninsured <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_uninsured) <- col_names
+
+# ---- *---- Clean ----
+
+df_uninsured <- df_uninsured %>%
+  mutate(across(c(S2701_C05_001E),
+                as.numeric)) %>%
+  rename(tract = GEO_ID,
+         uninsured = S2701_C05_001E) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, uninsured)
 
 
 
+# ---- Download and clean tract-level data from the Centers for Disease Control and Prevention (CDC) ----
 
+####
+# ---- *-- Life Expectancy (2010-2015) ----
+####
+
+# ---- *---- Download ----
+
+# API URL
+url <-"https://data.cdc.gov/resource/5h56-n989.csv?$limit=50000"
+
+# Download CSV and convert to data frame
+df_lifeexpect <- read.csv(url, stringsAsFactors = FALSE)
+
+# ---- *---- Clean ----
+
+df_lifeexpect <- df_lifeexpect %>%
+  # remove states other than Florida
+  filter(state_name == "Florida") %>%
+  # remove census tracts without life expectancy data
+  drop_na() %>%
+  # convert the truncated census tract number to a character string without the decimal
+  mutate(full_ct_num = as.character(full_ct_num*100)) %>%
+  # add preceding zeros to census tract number as needed to reach 6 digits for neighborhood number
+  mutate(full_ct_num = case_when(
+    nchar(full_ct_num) == 3 ~ paste0("000", full_ct_num),
+    nchar(full_ct_num) == 4 ~ paste0("00", full_ct_num),
+    nchar(full_ct_num) == 5 ~ paste0("0", full_ct_num),
+    nchar(full_ct_num) == 6 ~ full_ct_num,
+    TRUE ~ full_ct_num)) %>% # keeps values unchanged if they don't match conditions
+  # the census tract number needs to incorporate the preceding state (12) and county codes (3-digit) to be complete
+  mutate(tract = case_when(
+    county_name == "Alachua County, FL" ~ paste0("12001", full_ct_num),
+    county_name == "Baker County, FL" ~ paste0("12003", full_ct_num),
+    county_name == "Bay County, FL" ~ paste0("12005", full_ct_num),
+    county_name == "Bradford County, FL" ~ paste0("12007", full_ct_num),
+    county_name == "Brevard County, FL" ~ paste0("12009", full_ct_num),
+    county_name == "Broward County, FL" ~ paste0("12011", full_ct_num),
+    county_name == "Calhoun County, FL" ~ paste0("12013", full_ct_num),
+    county_name == "Charlotte County, FL" ~ paste0("12015", full_ct_num),
+    county_name == "Citrus County, FL" ~ paste0("12017", full_ct_num),
+    county_name == "Clay County, FL" ~ paste0("12019", full_ct_num),
+    county_name == "Collier County, FL" ~ paste0("12021", full_ct_num),
+    county_name == "Columbia County, FL" ~ paste0("12023", full_ct_num),
+    county_name == "DeSoto County, FL" ~ paste0("12027", full_ct_num),
+    county_name == "Dixie County, FL" ~ paste0("12029", full_ct_num),
+    county_name == "Duval County, FL" ~ paste0("12031", full_ct_num),
+    county_name == "Escambia County, FL" ~ paste0("12033", full_ct_num),
+    county_name == "Flagler County, FL" ~ paste0("12035", full_ct_num),
+    county_name == "Franklin County, FL" ~ paste0("12037", full_ct_num),
+    county_name == "Gadsden County, FL" ~ paste0("12039", full_ct_num),
+    county_name == "Gilchrist County, FL" ~ paste0("12041", full_ct_num),
+    county_name == "Glades County, FL" ~ paste0("12043", full_ct_num),
+    county_name == "Gulf County, FL" ~ paste0("12045", full_ct_num),
+    county_name == "Hamilton County, FL" ~ paste0("12047", full_ct_num),
+    county_name == "Hardee County, FL" ~ paste0("12049", full_ct_num),
+    county_name == "Hendry County, FL" ~ paste0("12051", full_ct_num),
+    county_name == "Hernando County, FL" ~ paste0("12053", full_ct_num),
+    county_name == "Highlands County, FL" ~ paste0("12055", full_ct_num),
+    county_name == "Hillsborough County, FL" ~ paste0("12057", full_ct_num),
+    county_name == "Holmes County, FL" ~ paste0("12059", full_ct_num),
+    county_name == "Indian River County, FL" ~ paste0("12061", full_ct_num),
+    county_name == "Jackson County, FL" ~ paste0("12063", full_ct_num),
+    county_name == "Jefferson County, FL" ~ paste0("12065", full_ct_num),
+    county_name == "Lafayette County, FL" ~ paste0("12067", full_ct_num),
+    county_name == "Lake County, FL" ~ paste0("12069", full_ct_num),
+    county_name == "Lee County, FL" ~ paste0("12071", full_ct_num),
+    county_name == "Leon County, FL" ~ paste0("12073", full_ct_num),
+    county_name == "Levy County, FL" ~ paste0("12075", full_ct_num),
+    county_name == "Liberty County, FL" ~ paste0("12077", full_ct_num),
+    county_name == "Madison County, FL" ~ paste0("12079", full_ct_num),
+    county_name == "Manatee County, FL" ~ paste0("12081", full_ct_num),
+    county_name == "Marion County, FL" ~ paste0("12083", full_ct_num),
+    county_name == "Martin County, FL" ~ paste0("12085", full_ct_num),
+    county_name == "Miami-Dade County, FL" ~ paste0("12086", full_ct_num),
+    county_name == "Monroe County, FL" ~ paste0("12087", full_ct_num),
+    county_name == "Nassau County, FL" ~ paste0("12089", full_ct_num),
+    county_name == "Okaloosa County, FL" ~ paste0("12091", full_ct_num),
+    county_name == "Okeechobee County, FL" ~ paste0("12093", full_ct_num),
+    county_name == "Orange County, FL" ~ paste0("12095", full_ct_num),
+    county_name == "Osceola County, FL" ~ paste0("12097", full_ct_num),
+    county_name == "Palm Beach County, FL" ~ paste0("12099", full_ct_num),
+    county_name == "Pasco County, FL" ~ paste0("12101", full_ct_num),
+    county_name == "Pinellas County, FL" ~ paste0("12103", full_ct_num),
+    county_name == "Polk County, FL" ~ paste0("12105", full_ct_num),
+    county_name == "Putnam County, FL" ~ paste0("12107", full_ct_num),
+    county_name == "St. Johns County, FL" ~ paste0("12109", full_ct_num),
+    county_name == "St. Lucie County, FL" ~ paste0("12111", full_ct_num),
+    county_name == "Santa Rosa County, FL" ~ paste0("12113", full_ct_num),
+    county_name == "Sarasota County, FL" ~ paste0("12115", full_ct_num),
+    county_name == "Seminole County, FL" ~ paste0("12117", full_ct_num),
+    county_name == "Sumter County, FL" ~ paste0("12119", full_ct_num),
+    county_name == "Suwannee County, FL" ~ paste0("12121", full_ct_num),
+    county_name == "Taylor County, FL" ~ paste0("12123", full_ct_num),
+    county_name == "Union County, FL" ~ paste0("12125", full_ct_num),
+    county_name == "Volusia County, FL" ~ paste0("12127", full_ct_num),
+    county_name == "Wakulla County, FL" ~ paste0("12129", full_ct_num),
+    county_name == "Walton County, FL" ~ paste0("12131", full_ct_num),
+    county_name == "Washington County, FL" ~ paste0("12133", full_ct_num),
+    TRUE ~ full_ct_num)) %>% # keeps values unchanged if they don't match conditions
+  rename(lifeexpect = le) %>%
+  select(tract, lifexpect)
 
 
 
