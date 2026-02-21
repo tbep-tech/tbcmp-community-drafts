@@ -646,6 +646,8 @@ tampabay %>%
     options = layersControlOptions(collapsed = FALSE)
   )
 
+# Save for future use as an RData object (only need to do once)
+# save(tampabay, file = 'data/tracts_tampabay.RData')
 
 # When you're done, clean up by deleting the temporary folders you created for the full tract data
 unlink(temp_dir, recursive = TRUE)
