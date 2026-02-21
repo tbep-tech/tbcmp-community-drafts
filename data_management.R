@@ -4,6 +4,7 @@ library(jsonlite)
 library(tidyverse)
 library(sf)
 library(leaflet)
+library(progressr)
 
 # ---- Download and clean tract-level data from 2024 American Community Survey (U.S. Census Bureau) ----
 
@@ -292,33 +293,65 @@ df_language <- df_language %>%
 # ---- *-- Single Parent Households ----
 ####
 
-# ---- *---- Download ----
+# ---- *---- Download & Clean ----
 
-# API URL
-url <- paste0(
-  "https://api.census.gov/data/2024/acs/acs5/profile?get=group(DP02)&ucgid=1400000US12101030101,1400000US12101030102,1400000US12101030202"
+# NOTE: The census only provides this data at the tract level one county at a time.
+# Instead of running code for every county, this code creates a function to do it at once
+# It amends the URL to insert a new FL county tract ID (FIPS code) each time to get the right data
+
+# Start by listing all the FL county census tract IDs (FIPS codes)
+county_fips <- c(
+  "12001","12003","12005","12007","12009","12011","12013","12015","12017","12019",
+  "12021","12023","12027","12029","12031","12033","12035","12037","12039","12041",
+  "12043","12045","12047","12049","12051","12053","12055","12057","12059","12061",
+  "12063","12065","12067","12069","12071","12073","12075","12077","12079","12081",
+  "12083","12085","12086","12087","12089","12091","12093","12095","12097","12099",
+  "12101","12103","12105","12107","12109","12111","12113","12115","12117","12119",
+  "12121","12123","12125","12127","12129","12131","12133"
 )
 
-# Download data
-response <- GET(url)
-stop_for_status(response)
-content_txt <- content(response, as = "text", encoding = "UTF-8")
-json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
-col_names <- unlist(json_raw[[1]])
-data_rows <- json_raw[-1]
-df_single <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
-colnames(df_single) <- col_names
+# Define the function
+get_county_data <- function(full_fips) {
+  # dynamically insert the FIPS code into the API URL
+  url <- paste0(
+    "https://api.census.gov/data/2024/acs/acs5/profile?",
+    "get=group(DP02)&ucgid=pseudo(0500000US",
+    full_fips,
+    "$1400000)"
+  )
+  # download and read the data
+  response <- GET(url)
+  stop_for_status(response)
+  content_txt <- content(response, as = "text", encoding = "UTF-8")
+  json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+  col_names <- unlist(json_raw[[1]])
+  data_rows <- json_raw[-1]
+  df <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+  colnames(df) <- col_names
+  
+  # ---- Clean ----
+  df <- df %>%
+    mutate(across(c(DP02_0007PE, DP02_0011PE), as.numeric)) %>%
+    mutate(single = DP02_0007PE + DP02_0011PE) %>%
+    rename(tract = GEO_ID) %>%
+    mutate(tract = substr(tract, 10, nchar(tract))) %>%
+    select(tract, single)
 
-# ---- *---- Clean ----
+  return(df)
+}
 
-df_single <- df_single %>%
-  mutate(across(c(DP02_0007PE,DP02_0011PE),
-                as.numeric)) %>%
-  # calculate % of households that have single men or women with children
-  mutate(single = DP02_0007PE+DP02_0011PE) %>%
-  rename(tract = GEO_ID) %>%
-  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
-  select(tract, single)
+# Run for all counties and merge them into one dataset (and show a live progress bar)
+handlers(global = TRUE)
+handlers("txtprogressbar")  # simple console bar
+
+with_progress({
+  p <- progressor(along = county_fips)
+  
+  df_single <- map_dfr(county_fips, function(fips) {
+    p()  # update progress bar
+    get_county_data(fips)
+  })
+})
 
 
 
@@ -399,8 +432,8 @@ df_disabled <- df_disabled %>%
 
 # API URL
 url <- paste0(
-  "https://api.census.gov/data/2020/dec/pl?get=group(P1)&ucgid=pseudo(0400000US12$1400000)"
-)
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B27001)&ucgid=pseudo(0400000US12$1400000)"
+  )
 
 # Download data
 response <- GET(url)
@@ -415,10 +448,15 @@ colnames(df_uninsured) <- col_names
 # ---- *---- Clean ----
 
 df_uninsured <- df_uninsured %>%
-  mutate(across(c(S2701_C05_001E),
+  mutate(across(c(B27001_001E,B27001_005E,B27001_008E,B27001_011E,B27001_014E,B27001_017E,B27001_020E,
+                  B27001_023E,B27001_026E,B27001_029E,B27001_033E,B27001_036E,B27001_039E,B27001_042E,
+                  B27001_045E,B27001_048E,B27001_051E,B27001_054E,B27001_057E),
                 as.numeric)) %>%
-  rename(tract = GEO_ID,
-         uninsured = S2701_C05_001E) %>%
+  # calculate % of population without health insurance coverage
+  mutate(uninsured = (B27001_005E+B27001_008E+B27001_011E+B27001_014E+B27001_017E+B27001_020E+
+                      B27001_023E+B27001_026E+B27001_029E+B27001_033E+B27001_036E+B27001_039E+B27001_042E+
+                      B27001_045E+B27001_048E+B27001_051E+B27001_054E+B27001_057E)/B27001_001E*100) %>%
+  rename(tract = GEO_ID) %>%
   mutate(tract = substr(tract, 10, nchar(tract))) %>% 
   select(tract, uninsured)
 
