@@ -2,7 +2,8 @@
 library(tidyverse)
 library(sf)
 library(leaflet)
-
+library(units)
+library(RColorBrewer)
 
 # ---- Create attribute table ----
 
@@ -56,22 +57,71 @@ metricsFL <- metricsFL %>%
                          txt_language,txt_single,txt_age,txt_disabled,txt_uninsured,txt_lifeexpect, sep = ", ")) %>%
   mutate(burdens = gsub('NA, ', '', burdens)) %>%
   mutate(burdens = gsub(', NA', '', burdens)) %>%
-  mutate(burdens = ifelse(burdens == "NA", "None", burdens))
+  mutate(burdens = ifelse(burdens == "NA", "None", burdens)) %>%
+  mutate(tract = as.character(tract)) %>%
+  # remove the txt fields
+  select(-(txt_income:txt_lifeexpect))
 
 
+# ---- Merge with census tract map ----
+
+# Load the saved tract map 
+load(file = 'data/tracts_tampabay.RData')
+
+# Reduce existing attribute table
+tampabay <- tampabay %>%
+  select(GEOID) %>%
+  # rename tract ID field to align with metrics table
+  rename(tract = GEOID)
+
+# For each mapped census tract, pull the corresponding metrics
+tampabay_metrics <- tampabay %>%
+  left_join(metricsFL, by = "tract") %>%
+  # remove tracts with a population of 0
+  filter(population > 0)
 
 
+# ---- Calculate tract sizes ----
+
+tampabay_metrics <- tampabay_metrics %>%
+  # project to NAD83 / Florida West (ftUS)
+  st_transform(2236) %>%
+  # calculate area in square miles
+  mutate(area_mi2 = st_area(geometry) %>%
+           set_units(mi^2) %>%
+           as.numeric()) %>%
+  # calculate population density
+  mutate(density = population/area_mi2) %>%
+  relocate(area_mi2, .after = population) %>%
+  relocate(density, .after = area_mi2)
 
 
+# ---- Create map of burdened communities ----
 
+# Convert to WGS84 for viewing with leaflet
+tampabay_metrics_wgs84 <- st_transform(tampabay_metrics, crs = 4326)
 
+# Create color palette
+pal_burdens <- colorNumeric(palette = brewer.pal(8, "YlOrRd"), domain = tampabay_metrics_wgs84$total_burdens)
 
-
-
-
-
-
-
+# Plot the number of burdens identified, and show list of burdens upon click
+tampabay_metrics_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_burdens(total_burdens),
+    fillOpacity = 0.7,
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    popup = ~paste("<b>Number of Burdens</b>:", total_burdens, "<br><b>Burdens</b>:", burdens)
+  ) %>%
+  addLegend(
+    pal = pal_burdens,
+    values = ~total_burdens,
+    title = "No. of Burdens",
+    position = "bottomright"
+  )
 
 
 
