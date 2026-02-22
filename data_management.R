@@ -125,7 +125,7 @@ tampabay_metrics_wgs84 %>%
 
 # Save final community map as a RData object (R), shapefile (ArcGIS), and KML (Google Maps) 
 community_map <- tampabay_metrics_wgs84
-save(community_map, file = 'data/community_map.RData')
-st_write(community_map, "data/community_map.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
-st_write(community_map, "data/community_map.kml", driver = "KML", delete_dsn = TRUE)
+#save(community_map, file = 'data/community_map.RData')
+#st_write(community_map, "data/community_map.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
+#st_write(community_map, "data/community_map.kml", driver = "KML", delete_dsn = TRUE)
 
