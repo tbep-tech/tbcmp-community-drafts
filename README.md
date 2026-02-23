@@ -20,7 +20,6 @@ Draft products and code for the Tampa Bay Coastal Master Plan underserved commun
   * Lack of health insurance
   * Low life expectancy
 
-The latest draft of the underserved community map is publicly available at https://tbep-tech.github.io/tbcmp-underserved-map.
 
 **Scripts Available**
 
