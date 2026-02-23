@@ -13,7 +13,7 @@ Draft products and code for the Tampa Bay Coastal Master Plan underserved commun
 * **Language burdens**
   * Linguistically isolated
 * **Family burdens**
-  * Singe parent households
+  * Single parent households
 * **Health burdens**
   * Vulnerable age groups
   * Disabled population
