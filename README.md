@@ -83,7 +83,7 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>burden_age</ins>: Logical, indicates if *age_pct* is in the 80th percentile or higher.
   * <ins>burden_disabled</ins>: Logical, indicates if *disabled_pct* is in the 80th percentile or higher.
   * <ins>burden_uninsured</ins>: Logical, indicates if *uninsured_pct* is in the 80th percentile or higher.
-  * <ins>burden_lifeexpect</ins>: Logical, indicates if *lifeexpect_pct* is in the 80th percentile or higher.
+  * <ins>burden_lifeexpect</ins>: Logical, indicates if *lifeexpect_pct* is in the 20th percentile or lower.
 * Burden summaries
   * <ins>total_burdens</ins>: Total count of burden classifications across the 12 sociodemographic characteristics.
   * <ins>burdens</ins>: Verbose list of all the sociodemographic burdens identified in a given tract.
