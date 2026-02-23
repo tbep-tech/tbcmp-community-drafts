@@ -1,5 +1,5 @@
 # tbcmp-community-drafts
-Draft products and code for the Tampa Bay Coastal Master Plan underserved community maps. Underserved communities are identified as those facing significant sociodemographic characteristics--including economic, health, and social burdens--that may make them especially vulnerable to the negative impacts of flooding. The following 12 burdens are considered in identifying underserved census tracts within the Tampa Bay region:
+Draft products and code for the Tampa Bay Coastal Master Plan underserved community maps. Underserved communities are identified as those facing significant sociodemographic burdens--including economic, health, and social burdens--that may make them especially vulnerable to the negative impacts of flooding. The following 12 burdens are considered in identifying underserved census tracts within the Tampa Bay region:
 * **Income burdens**
   * Low income households
   * Social security income
