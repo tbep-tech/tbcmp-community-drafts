@@ -46,18 +46,18 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>area_mi2</ins>: The area (in square miles) of the census tract, based on the NAD83 / Florida West (ftUS) projected coordinate system. Note this differs from the WGS84 coordinate system used to map the data.
   * <ins>density</ins>: Population density (people per sq. mile) based on *population* and *area_mi2*.
 * Sociodemographic characteristics
-  * <ins>income</ins>: Percent of the population below 200% of the federal poverty line, as estimated in the 2024 ACS [3].
-  * <ins>ssi</ins>: Percent of the population receiving social security income, as estimated in the 2024 ACS [4].
-  * <ins>unemployed</ins>: Percent of the population that is unemployed, as estimated in the 2024 ACS [5].
-  * <ins>costs</ins>: Percent of the population whose housing costs constitute more than 30% of their income, as estimated in the 2024 ACS [6].
-  * <ins>mobile</ins>: Percent of households that are mobile (and other) homes, as estimated in the 2024 ACS [7].
-  * <ins>education</ins>: Percent of the population age 25 and older that did not complete high school, as estimated in the 2024 ACS [8].
-  * <ins>language</ins>: Percent of households considered linguistically isolated, as estimated in the 2024 ACS [9].
-  * <ins>single</ins>: Percent of households occupied by a single parent of one or more children (under 18 years old), as estimated in the 2024 ACS [10].
+  * <ins>income</ins>: Percent of the population whose income is below 200% of the federal poverty level, as estimated in the 2024 ACS [3].
+  * <ins>ssi</ins>: Percent of households receiving social security income, as estimated in the 2024 ACS [4].
+  * <ins>unemployed</ins>: Percent of the population (16 years and older) that is unemployed, as estimated in the 2024 ACS [5].
+  * <ins>costs</ins>: Percent of households (owned or rented) where housing costs are more than 30% of household income, as estimated in the 2024 ACS [6].
+  * <ins>mobile</ins>: Percent of households that are mobile homes (and other miscellaneous types of units), as estimated in the 2024 ACS [7].
+  * <ins>education</ins>: Percent of the population (25 years and older) that did not receive a high school diploma or GED, as estimated in the 2024 ACS [8].
+  * <ins>language</ins>: Percent of households considered limited English-speaking, as estimated in the 2024 ACS [9].
+  * <ins>single</ins>: Percent of households occupied by a householder with no spouse/partner and children under 18 years old, as estimated in the 2024 ACS [10].
   * <ins>age</ins>: Percent of the population under 5 years old or 65 years and older, as estimated in the 2024 ACS [11].
   * <ins>disabled</ins>: Percent of the population with a disability, as estimated in the 2024 ACS [12].
-  * <ins>uninsured</ins>: Percent of the population without health insurance, as estimated in the 2024 ACS [13].
-  * <ins>lifeexpect</ins>: Average life expectancy at time of birth (in years), as estimated by the NCHS [14].
+  * <ins>uninsured</ins>: Percent of the population with no health insurance coverage, as estimated in the 2024 ACS [13].
+  * <ins>lifeexpect</ins>: Average life expectancy at time of birth (in years), as estimated for 2010-2015 by the NCHS [14].
 * Sociodemographic percentiles
   * <ins>income_pct</ins>: The tract's percentile rank for *income* among all Florida census tracts.
   * <ins>ssi_pct</ins>: The tract's percentile rank for *ssi* among all Florida census tracts.
