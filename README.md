@@ -35,6 +35,7 @@ The 'data' folder includes intermediary and final data products. These products 
 * <ins>community_map.RData</ins>: Spatial data (sf object) containing the final sociodemographic characteristics for each census tract in the Tampa Bay region. Best for workspaces using R software.
 * <ins>community_map.kml</ins>: Spatial data (KML) containing the final sociodemographic characteristics for each census tract in the Tampa Bay region. Best for workspaces using Google software (e.g., Google Earth, Google Maps).
 * <ins>community_map.shp (.dbf, .prj, .shx)</ins>: Spatial data (ESRI Shapefile) containing the final sociodemographic characteristics for each census tract in the Tampa Bay region. Best for workspaces using GIS software (e.g., ArcGIS, QGIS).
+* <ins>community_map.html</ins>: Spatial data (HTML) containing the final sociodemographic characteristics for each census tract in the Tampa Bay region. Best for hosting in online workspaces using HTML coding (e.g., GitHub Pages, websites).
 
 **Data Fields**
 
