@@ -706,8 +706,75 @@ df_superfunds <- left_join(tractsbuff, joined, by = 'GEOID') %>%
 
 
 
+# ---- *-- Hazardous Waste Sites (2026) ----
 
 
+# ---- *---- Download ----
+
+# API URL
+url <-"https://echo.epa.gov/files/echodownloads/rcra_downloads.zip"
+
+# Create a temporary directory
+temp_dir <- tempfile()
+dir.create(temp_dir)
+
+# Define path to save the zip file
+zip_path <- file.path(temp_dir, "rcra_downloads.zip")
+
+# Download the file
+download.file(url, destfile = zip_path, mode = "wb")
+
+# Unzip the contents
+unzip(zip_path, exdir = temp_dir)
+
+# Download CSV and convert to data frame
+RCRA <- read.csv(list.files(temp_dir, pattern = "RCRA_FACILITIES.*\\.csv$", full.names = TRUE), stringsAsFactors = FALSE)
+
+
+# ---- *---- Clean ----
+
+RCRA <- RCRA %>%
+  # remove states other than Florida, Alabama, and Georgia
+  filter(ACTIVITY_LOCATION == "FL" | ACTIVITY_LOCATION == "AL" | ACTIVITY_LOCATION == "GA") %>%
+  # keep only TSDFs and LQGs
+  filter(str_detect(HREPORT_UNIVERSE_RECORD, "TSDF|LQG")) %>%
+  # remove sites with no location data
+  filter(!is.na(LONGITUDE83) & !is.na(LATITUDE83))
+
+# Convert to points
+RCRApoints <- st_as_sf(RCRA, coords = c("LONGITUDE83", "LATITUDE83"), crs = 4326) %>%
+  # project to NAD83 / Florida West (ftUS)
+  st_transform(2236)
+
+# Re-project the Florida census tracts
+tracts <- tract_sf %>%
+  # keep only census tracts in Florida
+  filter(STATE_NAME == "Florida") %>%
+  # project to NAD83 / Florida West (ftUS)
+  st_transform(2236)
+
+# Create a 3 mile (15,840 ft) buffer around census tracts
+tractsbuff <- st_buffer(tracts, dist = 15840, endCapStyle = "ROUND") %>%
+  st_make_valid()
+
+# Calculate number of hazardous waste sites within 3 miles
+tractsbuff$hazwaste_N <- lengths(st_intersects(tractsbuff, RCRApoints))
+
+# Calculate distance to nearest hazardous waste site
+nearest <- st_nearest_feature(tracts, RCRApoints)
+distance <- st_distance(tracts, RCRApoints[nearest,], by_element=TRUE)
+joined <- cbind(tracts, st_drop_geometry(RCRApoints)[nearest,]) %>%
+  mutate(hazwaste_ft = distance) %>%
+  as.data.frame() %>%
+  # keep only the necessary data
+  select(GEOID, hazwaste_ft)
+
+# Create proximity metric
+df_hazwaste <- left_join(tractsbuff, joined, by = 'GEOID') %>%
+  as.data.frame() %>%
+  mutate(hazwaste = ifelse(hazwaste_N > 0, hazwaste_N/15840, 1/hazwaste_ft)) %>%
+  rename(tract = GEOID) %>%
+  select(tract, hazwaste)
 
 
 
@@ -729,7 +796,9 @@ merged_data <- df_population %>%
   full_join(df_age, by = "tract") %>%
   full_join(df_disabled, by = "tract") %>%
   full_join(df_uninsured, by = "tract") %>%
-  full_join(df_lifeexpect, by = "tract")
+  full_join(df_lifeexpect, by = "tract") %>%
+  full_join(df_superfunds, by = "tract") %>%
+  full_join(df_hazwaste, by = "tract")
 
 # Save for future use (only need to do once)
 # dir.create("data", recursive = TRUE, showWarnings = FALSE)
