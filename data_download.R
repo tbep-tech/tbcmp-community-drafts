@@ -3,6 +3,7 @@ library(httr)
 library(jsonlite)
 library(tidyverse)
 library(sf)
+library(terra)
 library(leaflet)
 library(progressr)
 
@@ -567,30 +568,6 @@ df_lifeexpect <- df_lifeexpect %>%
 
 
 
-# ---- Combine the datasets and save for future use ----
-
-# Combine data for each tract, allowing NAs if data unavailable for certain tracts
-merged_data <- df_population %>%
-  full_join(df_income, by = "tract") %>%
-  full_join(df_ssi, by = "tract") %>%
-  full_join(df_unemployed, by = "tract") %>%
-  full_join(df_costs, by = "tract") %>%
-  full_join(df_mobile, by = "tract") %>%
-  full_join(df_education, by = "tract") %>%
-  full_join(df_language, by = "tract") %>%
-  full_join(df_single, by = "tract") %>%
-  full_join(df_age, by = "tract") %>%
-  full_join(df_disabled, by = "tract") %>%
-  full_join(df_uninsured, by = "tract") %>%
-  full_join(df_lifeexpect, by = "tract")
-
-# Save for future use (only need to do once)
-# dir.create("data", recursive = TRUE, showWarnings = FALSE)
-# write.csv(merged_data, "data/metrics_florida.csv", row.names = FALSE)
-
-
-
-
 # ---- Download and clean census tract spatial data from the Cartographic Boundary Files (GENZ2024, U.S. Census TIGER) ----
 
 # ---- *---- Download ----
@@ -653,6 +630,7 @@ tampabay %>%
 
 
 
+
 # ---- Download and clean tract-level data from the Environmental Protection Agency (EPA) ----
 
 
@@ -681,8 +659,13 @@ unzip(zip_path, exdir = temp_dir)
 gdbpth <- list.files(temp_dir, pattern = '\\.gdb$', full.names = TRUE)
 gdbpth <- gsub('\\\\', '/', gdbpth)
 
-# Read the layer
-superfunds <- st_read(dsn = gdbpth, layer = "SITE_BOUNDARIES_SF") %>%
+# Read the layer with 'terra' because the shapefiles are curvilinear
+NPL <- vect(x = gdbpth, layer = "SITE_BOUNDARIES_SF")
+
+# Convert to sf
+superfunds <- st_as_sf(NPL) %>%
+  # fix geometries
+  st_make_valid() |> st_cast("MULTIPOLYGON") %>%
   # project to NAD83 / Florida West (ftUS)
   st_transform(2236) %>%
   # keep only sites that are a current site (F), proposed (P) or pre-proposed site (S), or part of one (A) 
@@ -699,7 +682,8 @@ tracts <- tract_sf %>%
   st_transform(2236)
   
 # Create a 3 mile (15,840 ft) buffer around census tracts
-tractsbuff <- st_buffer(tracts, dist = 15840, endCapStyle = "ROUND")
+tractsbuff <- st_buffer(tracts, dist = 15840, endCapStyle = "ROUND") %>%
+  st_make_valid()
 
 # Calculate number of superfund sites within 3 miles
 tractsbuff$superfunds_N <- lengths(st_intersects(tractsbuff, superfunds))
@@ -708,12 +692,48 @@ tractsbuff$superfunds_N <- lengths(st_intersects(tractsbuff, superfunds))
 nearest <- st_nearest_feature(tracts, superfunds)
 distance <- st_distance(tracts, superfunds[nearest,], by_element=TRUE)
 joined <- cbind(tracts, st_drop_geometry(superfunds)[nearest,]) %>%
-  mutate(dist_ft = distance) %>%
-  as.data.frame()
-
-proxsuper <- left_join(tractsbuff, joined, by = 'ID') %>%
+  mutate(superfunds_ft = distance) %>%
   as.data.frame() %>%
-  mutate(proximity = ifelse(superfunds_N > 0, superfunds_N/15840, 1/dist_ft))
+  # keep only the necessary data
+  select(GEOID, superfunds_ft)
+
+df_superfunds <- left_join(tractsbuff, joined, by = 'GEOID') %>%
+  as.data.frame() %>%
+  mutate(superfunds = ifelse(superfunds_N > 0, superfunds_N/15840, 1/superfunds_ft)) %>%
+  rename(tract = GEOID) %>%
+  select(tract, superfunds)
+
+
+
+
+
+
+
+
+
+
+
+# ---- Combine the datasets and save for future use ----
+
+# Combine data for each tract, allowing NAs if data unavailable for certain tracts
+merged_data <- df_population %>%
+  full_join(df_income, by = "tract") %>%
+  full_join(df_ssi, by = "tract") %>%
+  full_join(df_unemployed, by = "tract") %>%
+  full_join(df_costs, by = "tract") %>%
+  full_join(df_mobile, by = "tract") %>%
+  full_join(df_education, by = "tract") %>%
+  full_join(df_language, by = "tract") %>%
+  full_join(df_single, by = "tract") %>%
+  full_join(df_age, by = "tract") %>%
+  full_join(df_disabled, by = "tract") %>%
+  full_join(df_uninsured, by = "tract") %>%
+  full_join(df_lifeexpect, by = "tract")
+
+# Save for future use (only need to do once)
+# dir.create("data", recursive = TRUE, showWarnings = FALSE)
+# write.csv(merged_data, "data/metrics_florida.csv", row.names = FALSE)
+
 
 
 
