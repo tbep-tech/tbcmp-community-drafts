@@ -697,6 +697,7 @@ joined <- cbind(tracts, st_drop_geometry(superfunds)[nearest,]) %>%
   # keep only the necessary data
   select(GEOID, superfunds_ft)
 
+# Create proximity metric
 df_superfunds <- left_join(tractsbuff, joined, by = 'GEOID') %>%
   as.data.frame() %>%
   mutate(superfunds = ifelse(superfunds_N > 0, superfunds_N/15840, 1/superfunds_ft)) %>%
