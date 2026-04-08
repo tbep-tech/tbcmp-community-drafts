@@ -8,9 +8,9 @@ library(progressr)
 
 # ---- Download and clean tract-level data from 2024 American Community Survey (U.S. Census Bureau) ----
 
-####
+
 # ---- *-- Total Population ----
-####
+
 
 # ---- *---- Download ----
 
@@ -54,9 +54,9 @@ df_population <- df_population %>%
   select(tract, population)
 
 
-####
+
 # ---- *-- Low Income ----
-####
+
 
 # ---- *---- Download ----
 
@@ -87,9 +87,9 @@ df_income <- df_income %>%
   select(tract, income)
 
 
-####
+
 # ---- *-- Social Security Income Households ----
-####
+
 
 # ---- *---- Download ----
 
@@ -121,9 +121,9 @@ df_ssi <- df_ssi %>%
 
 
 
-####
+
 # ---- *-- Unemployment ----
-####
+
 
 # ---- *---- Download ----
 
@@ -155,7 +155,7 @@ df_unemployed <- df_unemployed %>%
 
 
 # ---- *-- Housing Cost Burden ----
-####
+
 
 # ---- *---- Download ----
 
@@ -187,9 +187,9 @@ df_costs <- df_costs %>%
 
 
 
-####
+
 # ---- *-- Mobile Homes ----
-####
+
 
 # ---- *---- Download ----
 
@@ -220,9 +220,9 @@ df_mobile <- df_mobile %>%
 
 
 
-####
+
 # ---- *-- Limited Education ----
-####
+
 
 # ---- *---- Download ----
 
@@ -256,9 +256,9 @@ df_education <- df_education %>%
 
 
 
-####
+
 # ---- *-- Linguistically Isolated Households ----
-####
+
 
 # ---- *---- Download ----
 
@@ -289,9 +289,9 @@ df_language <- df_language %>%
 
 
 
-####
+
 # ---- *-- Single Parent Households ----
-####
+
 
 # ---- *---- Download ----
 
@@ -355,9 +355,9 @@ with_progress({
 
 
 
-####
+
 # ---- *-- Vulnerable Age Groups ----
-####
+
 
 # ---- *---- Download ----
 
@@ -391,7 +391,7 @@ df_age <- df_age %>%
 
 
 # ---- *-- Disability ----
-####
+
 
 # ---- *---- Download ----
 
@@ -424,9 +424,9 @@ df_disabled <- df_disabled %>%
   select(tract, disabled)
 
 
-####
+
 # ---- *-- No Health Insurance ----
-####
+
 
 # ---- *---- Download ----
 
@@ -464,9 +464,9 @@ df_uninsured <- df_uninsured %>%
 
 # ---- Download and clean tract-level data from the Centers for Disease Control and Prevention (CDC) ----
 
-####
+
 # ---- *-- Life Expectancy (2010-2015) ----
-####
+
 
 # ---- *---- Download ----
 
@@ -565,6 +565,8 @@ df_lifeexpect <- df_lifeexpect %>%
   rename(lifeexpect = le) %>%
   select(tract, lifeexpect)
 
+
+
 # ---- Combine the datasets and save for future use ----
 
 # Combine data for each tract, allowing NAs if data unavailable for certain tracts
@@ -619,7 +621,7 @@ tract_wgs84 <- st_transform(tract_sf, crs = 4326)
 # ---- *---- Clean ----
 
 tampabay <- tract_wgs84 %>%
-  # keep only census tracts in Florda
+  # keep only census tracts in Florida
   filter(STATE_NAME == "Florida") %>%
   # keep only census tracts in Tampa Bay Coastal Master Plan counties
   filter(NAMELSADCO == "Citrus County" | NAMELSADCO == "Hernando County" | 
@@ -648,6 +650,75 @@ tampabay %>%
 
 # Save for future use as an RData object (only need to do once)
 # save(tampabay, file = 'data/tracts_tampabay.RData')
+
+
+
+# ---- Download and clean tract-level data from the Environmental Protection Agency (EPA) ----
+
+
+# ---- *-- NPL Superfund Sites (2026) ----
+
+
+# ---- *---- Download ----
+
+# API URL
+url <-"https://edg.epa.gov/data/PUBLIC/OLEM/OLEM-OSRTI/NPL_Boundaries.zip"
+
+# Create a temporary directory
+temp_dir <- tempfile()
+dir.create(temp_dir)
+
+# Define path to save the zip file
+zip_path <- file.path(temp_dir, "NPL_Boundaries.zip")
+
+# Download the file
+download.file(url, destfile = zip_path, mode = "wb")
+
+# Unzip the contents
+unzip(zip_path, exdir = temp_dir)
+
+# Get the path to the geodatabase
+gdbpth <- list.files(temp_dir, pattern = '\\.gdb$', full.names = TRUE)
+gdbpth <- gsub('\\\\', '/', gdbpth)
+
+# Read the layer
+superfunds <- st_read(dsn = gdbpth, layer = "SITE_BOUNDARIES_SF") %>%
+  # project to NAD83 / Florida West (ftUS)
+  st_transform(2236) %>%
+  # keep only sites that are a current site (F), proposed (P) or pre-proposed site (S), or part of one (A) 
+  filter(NPL_STATUS_CODE == "F" | NPL_STATUS_CODE == "P" | NPL_STATUS_CODE == "S" | NPL_STATUS_CODE == "A")
+
+
+# ---- *---- Clean ----
+
+# Re-project the Florida census tracts
+tracts <- tract_sf %>%
+  # keep only census tracts in Florida
+  filter(STATE_NAME == "Florida") %>%
+  # project to NAD83 / Florida West (ftUS)
+  st_transform(2236)
+  
+# Create a 3 mile (15,840 ft) buffer around census tracts
+tractsbuff <- st_buffer(tracts, dist = 15840, endCapStyle = "ROUND")
+
+# Calculate number of superfund sites within 3 miles
+tractsbuff$superfunds_N <- lengths(st_intersects(tractsbuff, superfunds))
+
+# Calculate distance to nearest superfund site
+nearest <- st_nearest_feature(tracts, superfunds)
+distance <- st_distance(tracts, superfunds[nearest,], by_element=TRUE)
+joined <- cbind(tracts, st_drop_geometry(superfunds)[nearest,]) %>%
+  mutate(dist_ft = distance) %>%
+  as.data.frame()
+
+proxsuper <- left_join(tractsbuff, joined, by = 'ID') %>%
+  as.data.frame() %>%
+  mutate(proximity = ifelse(superfunds_N > 0, superfunds_N/15840, 1/dist_ft))
+
+
+
+
+
 
 # When you're done, clean up by deleting the temporary folders you created for the full tract data
 unlink(temp_dir, recursive = TRUE)
