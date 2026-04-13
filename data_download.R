@@ -650,6 +650,7 @@ dir.create(temp_dir)
 zip_path <- file.path(temp_dir, "NPL_Boundaries.zip")
 
 # Download the file
+options(timeout = 300)  # 5 minutes
 download.file(url, destfile = zip_path, mode = "wb")
 
 # Unzip the contents
