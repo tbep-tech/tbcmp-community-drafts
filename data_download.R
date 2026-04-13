@@ -6,6 +6,8 @@ library(sf)
 library(terra)
 library(leaflet)
 library(progressr)
+library(readr)
+
 
 # ---- Download and clean tract-level data from 2024 American Community Survey (U.S. Census Bureau) ----
 
@@ -567,6 +569,61 @@ df_lifeexpect <- df_lifeexpect %>%
   select(tract, lifeexpect)
 
 
+# ---- *-- Air Quality (2016-2020) ----
+
+
+# ---- *---- Download ----
+
+# The CDC only provides data in chunks of up to 50,000 rows, so create a loop to pull in chunks until none left
+get_cdc_pm25_fl <- function(limit = 50000) {
+  # Base Socrata API endpoint for the CDC dataset
+  base_url <- "https://data.cdc.gov/resource/96sd-hxdt.csv"
+  # Initialize storage for chunks and starting offset
+  all_data <- list()
+  offset <- 0
+  repeat {
+    # Build API query:
+    # - Filter to Florida (statefips = 12)
+    # - Select only needed columns
+    # - Use limit + offset for pagination
+    url <- paste0(
+      base_url,
+      "?statefips=12",
+      "&$select=year,statefips,ctfips,ds_pm_pred",
+      "&$limit=", limit,
+      "&$offset=", format(offset, scientific = FALSE)
+    )
+    # Print progress so you know it's working
+    message("Downloading rows ", offset, " to ", offset + limit)
+    # Download one chunk of data
+    chunk <- read_csv(url, show_col_types = FALSE)
+    # Stop loop when no more rows are returned
+    if (nrow(chunk) == 0) break
+    # Store chunk in list
+    all_data[[length(all_data) + 1]] <- chunk
+    # Increase offset to get next batch
+    offset <- offset + limit
+  }
+  # Combine all chunks into a single dataframe
+  bind_rows(all_data)
+}
+
+# Download the data (This will take a long time, over 8,000,000 rows)
+df_fl_pm25 <- get_cdc_pm25_fl()
+
+
+
+# ---- *---- Clean ----
+
+df_air <- df_fl_pm25 %>%
+  # calculate means per census tract
+  group_by(ctfips) %>%
+  summarise(mean_pm25 = mean(ds_pm_pred, na.rm = TRUE)) %>%
+  ungroup() %>%
+  rename(tract = ctfips,
+         air = mean_pm25)
+
+
 
 # ---- Download and clean census tract spatial data from the Cartographic Boundary Files (GENZ2024, U.S. Census TIGER) ----
 
@@ -798,6 +855,7 @@ merged_data <- df_population %>%
   full_join(df_disabled, by = "tract") %>%
   full_join(df_uninsured, by = "tract") %>%
   full_join(df_lifeexpect, by = "tract") %>%
+  full_join(df_air, by = "tract") %>%
   full_join(df_superfunds, by = "tract") %>%
   full_join(df_hazwaste, by = "tract")
 
