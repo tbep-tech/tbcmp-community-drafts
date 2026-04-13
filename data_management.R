@@ -4,6 +4,8 @@ library(sf)
 library(leaflet)
 library(units)
 library(RColorBrewer)
+library(viridis)
+
 
 # ---- Create attribute table ----
 
@@ -24,7 +26,9 @@ metricsFL <- metricsFL %>%
          age_pct = if_else(is.na(age), NA_real_, percent_rank(age)*100),
          disabled_pct = if_else(is.na(disabled), NA_real_, percent_rank(disabled)*100),
          uninsured_pct = if_else(is.na(uninsured), NA_real_, percent_rank(uninsured)*100),
-         lifeexpect_pct = if_else(is.na(lifeexpect), NA_real_, percent_rank(lifeexpect)*100)) %>%
+         lifeexpect_pct = if_else(is.na(lifeexpect), NA_real_, percent_rank(lifeexpect)*100),
+         superfunds_pct = if_else(is.na(superfunds), NA_real_, percent_rank(superfunds)*100),
+         hazwaste_pct = if_else(is.na(hazwaste), NA_real_, percent_rank(hazwaste)*100)) %>%
   # flag if variable meets the criteria (>=80th or <=20th percentile, depending on variable)
   mutate(burden_income = if_else(income_pct >= 80, 1, 0, missing = 0),
          burden_ssi = if_else(ssi_pct >= 80, 1, 0, missing = 0),
@@ -37,10 +41,12 @@ metricsFL <- metricsFL %>%
          burden_age = if_else(age_pct >= 80, 1, 0, missing = 0),
          burden_disabled = if_else(disabled_pct >= 80, 1, 0, missing = 0),
          burden_uninsured = if_else(uninsured_pct >= 80, 1, 0, missing = 0),
-         burden_lifeexpect = if_else(lifeexpect_pct <= 20, 1, 0, missing = 0)) %>%
-  # calculate the total number of burdens experience in each census tract
-  mutate(total_burdens = rowSums(across(burden_income:burden_lifeexpect), na.rm = TRUE)) %>%
-  # create field to list each sociodemographic burden threshold met
+         burden_lifeexpect = if_else(lifeexpect_pct <= 20, 1, 0, missing = 0),
+         burden_superfunds = if_else(superfunds_pct >= 80, 1, 0, missing = 0),
+         burden_hazwaste = if_else(hazwaste_pct >= 80, 1, 0, missing = 0)) %>%
+  # calculate the total number of burdens experienced in each census tract
+  mutate(total_burdens = rowSums(across(burden_income:burden_hazwaste), na.rm = TRUE)) %>%
+  # create field to list each burden threshold met
   mutate(txt_income = ifelse(burden_income == 1, "Low income", NA),
          txt_ssi = ifelse(burden_ssi == 1, "Social security income", NA),
          txt_unemployed = ifelse(burden_unemployed == 1, "Unemployment", NA),
@@ -52,15 +58,17 @@ metricsFL <- metricsFL %>%
          txt_age = ifelse(burden_age == 1, "Vulnerable age groups", NA),
          txt_disabled = ifelse(burden_disabled == 1, "Disabilities", NA),
          txt_uninsured = ifelse(burden_uninsured == 1, "Lacking health insurance", NA),
-         txt_lifeexpect = ifelse(burden_lifeexpect == 1, "Low life expectancy", NA)) %>%
-  mutate(burdens = paste(txt_income,txt_ssi,txt_unemployed,txt_costs,txt_mobile,txt_education,
-                         txt_language,txt_single,txt_age,txt_disabled,txt_uninsured,txt_lifeexpect, sep = ", ")) %>%
+         txt_lifeexpect = ifelse(burden_lifeexpect == 1, "Low life expectancy", NA),
+         txt_superfunds = ifelse(burden_superfunds == 1, "Proximity to Superfund sites", NA),
+         txt_hazwaste = ifelse(burden_hazwaste == 1, "Proximity to hazardous waste sites", NA)) %>%
+  mutate(burdens = paste(txt_income,txt_ssi,txt_unemployed,txt_costs,txt_mobile,txt_education,txt_language,
+                         txt_single,txt_age,txt_disabled,txt_uninsured,txt_lifeexpect,txt_superfunds,txt_hazwaste, sep = ", ")) %>%
   mutate(burdens = gsub('NA, ', '', burdens)) %>%
   mutate(burdens = gsub(', NA', '', burdens)) %>%
   mutate(burdens = ifelse(burdens == "NA", "None", burdens)) %>%
   mutate(tract = as.character(tract)) %>%
   # remove the txt fields
-  select(-(txt_income:txt_lifeexpect))
+  select(-(txt_income:txt_hazwaste))
 
 
 # ---- Merge with census tract map ----
@@ -96,7 +104,79 @@ tampabay_metrics <- tampabay_metrics %>%
   relocate(density, .after = area_mi2)
 
 
-# ---- Create map of burdened communities ----
+# ---- (PROPOSED) Create map of burdened communities ----
+
+tampabay_metrics <- tampabay_metrics %>%
+  # calculate vulnerability index based on the weights applied to the 9 vulnerability criteria
+  mutate(vulnerability = 
+           (burden_income*1) + 
+           (burden_mobile*1) + 
+           (burden_disabled*1) + 
+           (burden_costs*0.5) + 
+           (burden_language*0.5) + 
+           (burden_uninsured*0.5) + 
+           (burden_age*0.5) + 
+           (burden_superfunds*0.5) + 
+           (burden_hazwaste*0.5)) %>%
+  mutate(txt_income = ifelse(burden_income == 1, "Low income", NA),
+         txt_costs = ifelse(burden_costs == 1, "Housing cost stress", NA),
+         txt_mobile = ifelse(burden_mobile == 1, "Mobile homes", NA),
+         txt_language = ifelse(burden_language == 1, "Linguistically isolated", NA),
+         txt_age = ifelse(burden_age == 1, "Vulnerable age groups", NA),
+         txt_disabled = ifelse(burden_disabled == 1, "Disabled population", NA),
+         txt_uninsured = ifelse(burden_uninsured == 1, "Lacking health insurance", NA),
+         txt_superfunds = ifelse(burden_superfunds == 1, "Proximity to Superfund sites", NA),
+         txt_hazwaste = ifelse(burden_hazwaste == 1, "Proximity to hazardous waste sites", NA)) %>%
+  mutate(vul_burdens = paste(txt_income,txt_costs,txt_mobile,txt_language,txt_age,txt_disabled,txt_uninsured,
+                         txt_superfunds,txt_hazwaste, sep = ", ")) %>%
+  mutate(vul_burdens = gsub('NA, ', '', vul_burdens)) %>%
+  mutate(vul_burdens = gsub(', NA', '', vul_burdens)) %>%
+  mutate(vul_burdens = ifelse(vul_burdens == "NA", "None", vul_burdens)) %>%
+  mutate(tract = as.character(tract)) %>%
+  select(-(txt_income:txt_hazwaste)) %>%
+  relocate(vulnerability, .after = burdens) %>%
+  relocate(vul_burdens, .after = vulnerability)
+  
+# Convert to WGS84 for viewing with leaflet
+tampabay_metrics_wgs84 <- st_transform(tampabay_metrics, crs = 4326)
+
+# Create color palette
+pal_vulnerability <- colorNumeric(palette = brewer.pal(8, "YlGnBu"), domain = tampabay_metrics_wgs84$vulnerability)
+#pal_vulnerability <- colorNumeric(plasma(256), domain = tampabay_metrics_wgs84$vulnerability)
+
+# Plot the number of burdens identified, and show list of burdens upon click
+map <- tampabay_metrics_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_vulnerability(vulnerability),
+    fillOpacity = 0.7,
+    weight = 0.5,
+    opacity = 1,
+    color = "white",
+    popup = ~paste("<b>Vulnerability Index</b>:", vulnerability, "<br><b>Burdens</b>:", vul_burdens)
+  ) %>%
+  addLegend(
+    pal = pal_vulnerability,
+    values = ~vulnerability,
+    title = "Flood Vulnerability",
+    position = "bottomright"
+  )
+map
+
+# Save final community map as a RData object (R), shapefile (ArcGIS), and KML (Google Maps) 
+community_map <- tampabay_metrics_wgs84
+#save(community_map, file = 'data/community_map.RData')
+#st_write(community_map, "data/community_map.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
+#st_write(community_map, "data/community_map.kml", driver = "KML", delete_dsn = TRUE)
+
+
+# Save the leaflet map as an HTML file that can be shared for easy viewing outside of R
+library(htmlwidgets)
+#saveWidget(map, "community_map.html", selfcontained = TRUE)
+
+
+# ---- (ALL BURDENS) Create map of burdened communities ----
 
 # Convert to WGS84 for viewing with leaflet
 tampabay_metrics_wgs84 <- st_transform(tampabay_metrics, crs = 4326)
