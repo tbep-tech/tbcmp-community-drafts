@@ -1,5 +1,5 @@
 # tbcmp-community-drafts
-Draft products and code for the Tampa Bay Coastal Master Plan underserved community maps. Underserved communities are identified as those facing significant sociodemographic burdens--including economic, health, and social burdens--that may make them especially vulnerable to the negative impacts of flooding. The following 12 burdens are considered in identifying underserved census tracts within the Tampa Bay region:
+Draft products and code for the Tampa Bay Coastal Master Plan community vulnerability maps. Flood-vulnerable communities are identified as those facing significant burdens--including demographic, economic, and environmental--that may make them especially vulnerable to the negative impacts of flooding. The following 14 burdens are considered in identifying vulnerable census tracts within the Tampa Bay region:
 * **Income burdens**
   * Low income households
   * Social security income
@@ -19,7 +19,9 @@ Draft products and code for the Tampa Bay Coastal Master Plan underserved commun
   * Disabled population
   * Lack of health insurance
   * Low life expectancy
-
+* **Environmental burdens**
+  * Proximity to Superfund sites
+  * Proximity to hazardous waste facilities
 
 **Scripts Available**
 
@@ -45,7 +47,7 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>population</ins>: The total population, as estimated in the 2024 ACS [2].
   * <ins>area_mi2</ins>: The area (in square miles) of the census tract, based on the NAD83 / Florida West (ftUS) projected coordinate system. Note this differs from the WGS84 coordinate system used to map the data.
   * <ins>density</ins>: Population density (people per sq. mile) based on *population* and *area_mi2*.
-* Sociodemographic characteristics
+* Vulnerability characteristics
   * <ins>income</ins>: Percent of the population whose income is below 200% of the federal poverty level, as estimated in the 2024 ACS [3].
   * <ins>ssi</ins>: Percent of households receiving social security income, as estimated in the 2024 ACS [4].
   * <ins>unemployed</ins>: Percent of the population (16 years and older) that is unemployed, as estimated in the 2024 ACS [5].
@@ -58,7 +60,9 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>disabled</ins>: Percent of the population with a disability, as estimated in the 2024 ACS [12].
   * <ins>uninsured</ins>: Percent of the population with no health insurance coverage, as estimated in the 2024 ACS [13].
   * <ins>lifeexpect</ins>: Average life expectancy at time of birth (in years), as estimated for 2010-2015 by the NCHS [14].
-* Sociodemographic percentiles
+  * <ins>superfunds</ins>: Number of proposed or listed Superfund sites within 3 miles (or nearest beyond 3 miles) divided by distance, based on facility boundaries mapped by the EPA [15].
+  * <ins>hazwaste</ins>: Number of hazardous waste facilities within 3 miles (or nearest beyond 3 miles) divided by distance, based on site points mapped by the EPA [16].
+* Vulnerability percentiles
   * <ins>income_pct</ins>: The tract's percentile rank for *income* among all Florida census tracts.
   * <ins>ssi_pct</ins>: The tract's percentile rank for *ssi* among all Florida census tracts.
   * <ins>unemployed_pct</ins>: The tract's percentile rank for *unemployed* among all Florida census tracts.
@@ -71,6 +75,8 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>disabled_pct</ins>: The tract's percentile rank for *disabled* among all Florida census tracts.
   * <ins>uninsured_pct</ins>: The tract's percentile rank for *uninsured* among all Florida census tracts.
   * <ins>lifeexpect_pct</ins>: The tract's percentile rank for *lifeexpect* among all Florida census tracts.
+  * <ins>superfunds_pct</ins>: The tract's percentile rank for *superfunds* among all Florida census tracts.
+  * <ins>hazwaste_pct</ins>: The tract's percentile rank for *hazwaste* among all Florida census tracts.
 * Burden classifications
   * <ins>burden_income</ins>: Logical, indicates if *income_pct* is in the 80th percentile or higher.
   * <ins>burden_ssi</ins>: Logical, indicates if *ssi_pct* is in the 80th percentile or higher.
@@ -84,9 +90,11 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>burden_disabled</ins>: Logical, indicates if *disabled_pct* is in the 80th percentile or higher.
   * <ins>burden_uninsured</ins>: Logical, indicates if *uninsured_pct* is in the 80th percentile or higher.
   * <ins>burden_lifeexpect</ins>: Logical, indicates if *lifeexpect_pct* is in the 20th percentile or lower.
+  * <ins>burden_superfunds</ins>: Logical, indicates if *superfunds_pct* is in the 80th percentile or higher.
+  * <ins>burden_hazwaste</ins>: Logical, indicates if *hazwaste_pct* is in the 80th percentile or higher.
 * Burden summaries
-  * <ins>total_burdens</ins>: Total count of burden classifications across the 12 sociodemographic characteristics.
-  * <ins>burdens</ins>: Verbose list of all the sociodemographic burdens identified in a given tract.
+  * <ins>total_burdens</ins>: Total count of burden classifications across the 12 vulnerability characteristics.
+  * <ins>burdens</ins>: Verbose list of all the burdens identified in a given tract.
 
 **Data Sources**
   * [1] U.S. Census Bureau. (2024). 2024 Cartographic Boundary Files (Shapefiles). *Scale 1:500,000 (national)*. Retrieved February 19, 2026, from https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html.
@@ -103,3 +111,5 @@ Below is a description of the fields contained in the attribute table of the fin
   * [12] U.S. Census Bureau. (2024). Sex by Age by Disability Status. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B18101*. Retrieved February 19, 2026, from https://data.census.gov/table.
   * [13] U.S. Census Bureau. (2024). Health Insurance Coverage Status by Sex by Age. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B27001*. Retrieved February 19, 2026, from https://data.census.gov/table.
   * [14] National Center for Health Statistics. (2019). U.S. Life Expectancy at Birth by State and Census Tract - 2010-2015. U.S. Centers for Disease Control and Prevention. Retrieved February 19, 2026, from https://data.cdc.gov/d/5h56-n989.
+  * [15] U.S. Environmental Protection Agency. (2026). NPL Superfund Site Boundaries. U.S. Environmental Protection Agency, Office of Land and Emergency Management. Retrieved February 19, 2026, from https://catalog.data.gov/dataset/npl-superfund-site-boundaries-epa10.
+  * [16] U.S. Environmental Protection Agency. (2026). RCRAInfo. U.S. Environmental Protection Agency, Enforcement and Compliance History Online (ECHO). Retrieved February 19, 2026, from https://echo.epa.gov/tools/data-downloads#hazardouswaste.
