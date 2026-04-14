@@ -8,6 +8,8 @@ Draft products and code for the Tampa Bay Coastal Master Plan community vulnerab
 * **Housing burdens**
   * Housing cost stress
   * Mobile homes
+  * Plumbing deficiencies
+  * Over-crowded households
 * **Educational burdens**
   * Limited education
 * **Language burdens**
@@ -20,6 +22,7 @@ Draft products and code for the Tampa Bay Coastal Master Plan community vulnerab
   * Lack of health insurance
   * Low life expectancy
 * **Environmental burdens**
+  * Proximity to Toxic Release Inventory (TRI) sites
   * Proximity to Superfund sites
   * Proximity to hazardous waste facilities
 
@@ -53,21 +56,26 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>unemployed</ins>: Percent of the population (16 years and older) that is unemployed, as estimated in the 2024 ACS [5].
   * <ins>costs</ins>: Percent of households (owned or rented) where housing costs are more than 30% of household income, as estimated in the 2024 ACS [6].
   * <ins>mobile</ins>: Percent of households that are mobile homes (and other miscellaneous types of units), as estimated in the 2024 ACS [7].
-  * <ins>education</ins>: Percent of the population (25 years and older) that did not receive a high school diploma or GED, as estimated in the 2024 ACS [8].
-  * <ins>language</ins>: Percent of households considered limited English-speaking, as estimated in the 2024 ACS [9].
-  * <ins>single</ins>: Percent of households occupied by a householder with no spouse/partner and children under 18 years old, as estimated in the 2024 ACS [10].
-  * <ins>age</ins>: Percent of the population under 5 years old or 65 years and older, as estimated in the 2024 ACS [11].
-  * <ins>disabled</ins>: Percent of the population with a disability, as estimated in the 2024 ACS [12].
-  * <ins>uninsured</ins>: Percent of the population with no health insurance coverage, as estimated in the 2024 ACS [13].
-  * <ins>lifeexpect</ins>: Average life expectancy at time of birth (in years), as estimated for 2010-2015 by the NCHS [14].
-  * <ins>superfunds</ins>: Number of proposed or listed Superfund sites within 3 miles (or nearest beyond 3 miles) divided by distance, based on facility boundaries mapped by the EPA [15].
-  * <ins>hazwaste</ins>: Number of hazardous waste facilities within 3 miles (or nearest beyond 3 miles) divided by distance, based on site points mapped by the EPA [16].
+  * <ins>plumbing</ins>: Percent of housing units lacking complete plumbing facilities, as estimated in the 2024 ACS [8].
+  * <ins>overcrowded</ins>: Percent of households with more than one occupant per room, as estimated in the 2024 ACS [9].
+  * <ins>education</ins>: Percent of the population (25 years and older) that did not receive a high school diploma or GED, as estimated in the 2024 ACS [10].
+  * <ins>language</ins>: Percent of households considered limited English-speaking, as estimated in the 2024 ACS [11].
+  * <ins>single</ins>: Percent of households occupied by a householder with no spouse/partner and children under 18 years old, as estimated in the 2024 ACS [12].
+  * <ins>age</ins>: Percent of the population under 5 years old or 65 years and older, as estimated in the 2024 ACS [13].
+  * <ins>disabled</ins>: Percent of the population with a disability, as estimated in the 2024 ACS [14].
+  * <ins>uninsured</ins>: Percent of the population with no health insurance coverage, as estimated in the 2024 ACS [15].
+  * <ins>lifeexpect</ins>: Average life expectancy at time of birth (in years), as estimated for 2010-2015 by the NCHS [16].
+  * <ins>tri</ins>: Number of sites from the Toxic Release Inventory (TRI) within 3 miles (or nearest beyond 3 miles) divided by distance, based on site points mapped by the EPA [17].
+  * <ins>superfunds</ins>: Number of proposed or listed Superfund sites within 3 miles (or nearest beyond 3 miles) divided by distance, based on facility boundaries mapped by the EPA [18].
+  * <ins>hazwaste</ins>: Number of hazardous waste facilities within 3 miles (or nearest beyond 3 miles) divided by distance, based on site points mapped by the EPA [19].
 * Vulnerability percentiles
   * <ins>income_pct</ins>: The tract's percentile rank for *income* among all Florida census tracts.
   * <ins>ssi_pct</ins>: The tract's percentile rank for *ssi* among all Florida census tracts.
   * <ins>unemployed_pct</ins>: The tract's percentile rank for *unemployed* among all Florida census tracts.
   * <ins>costs_pct</ins>: The tract's percentile rank for *costs* among all Florida census tracts.
   * <ins>mobile_pct</ins>: The tract's percentile rank for *mobile* among all Florida census tracts.
+  * <ins>plumbing_pct</ins>: The tract's percentile rank for *plumbing* among all Florida census tracts.
+  * <ins>overcrowded_pct</ins>: The tract's percentile rank for *overcrowded* among all Florida census tracts.
   * <ins>education_pct</ins>: The tract's percentile rank for *education* among all Florida census tracts.
   * <ins>language_pct</ins>: The tract's percentile rank for *language* among all Florida census tracts.
   * <ins>single_pct</ins>: The tract's percentile rank for *single* among all Florida census tracts.
@@ -75,6 +83,7 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>disabled_pct</ins>: The tract's percentile rank for *disabled* among all Florida census tracts.
   * <ins>uninsured_pct</ins>: The tract's percentile rank for *uninsured* among all Florida census tracts.
   * <ins>lifeexpect_pct</ins>: The tract's percentile rank for *lifeexpect* among all Florida census tracts.
+  * <ins>tri_pct</ins>: The tract's percentile rank for *tri* among all Florida census tracts.
   * <ins>superfunds_pct</ins>: The tract's percentile rank for *superfunds* among all Florida census tracts.
   * <ins>hazwaste_pct</ins>: The tract's percentile rank for *hazwaste* among all Florida census tracts.
 * Burden classifications
@@ -83,6 +92,8 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>burden_unemployed</ins>: Logical, indicates if *unemployed_pct* is in the 80th percentile or higher.
   * <ins>burden_costs</ins>: Logical, indicates if *costs_pct* is in the 80th percentile or higher.
   * <ins>burden_mobile</ins>: Logical, indicates if *mobile_pct* is in the 80th percentile or higher.
+  * <ins>burden_plumbing</ins>: Logical, indicates if *plumbing_pct* is in the 80th percentile or higher.
+  * <ins>burden_overcrowded</ins>: Logical, indicates if *overcrowded_pct* is in the 80th percentile or higher.
   * <ins>burden_education</ins>: Logical, indicates if *education_pct* is in the 80th percentile or higher.
   * <ins>burden_language</ins>: Logical, indicates if *language_pct* is in the 80th percentile or higher.
   * <ins>burden_single</ins>: Logical, indicates if *single_pct* is in the 80th percentile or higher.
@@ -90,6 +101,7 @@ Below is a description of the fields contained in the attribute table of the fin
   * <ins>burden_disabled</ins>: Logical, indicates if *disabled_pct* is in the 80th percentile or higher.
   * <ins>burden_uninsured</ins>: Logical, indicates if *uninsured_pct* is in the 80th percentile or higher.
   * <ins>burden_lifeexpect</ins>: Logical, indicates if *lifeexpect_pct* is in the 20th percentile or lower.
+  * <ins>burden_tri</ins>: Logical, indicates if *tri_pct* is in the 80th percentile or higher.
   * <ins>burden_superfunds</ins>: Logical, indicates if *superfunds_pct* is in the 80th percentile or higher.
   * <ins>burden_hazwaste</ins>: Logical, indicates if *hazwaste_pct* is in the 80th percentile or higher.
 * Burden summaries
@@ -104,12 +116,15 @@ Below is a description of the fields contained in the attribute table of the fin
   * [5] U.S. Census Bureau. (2024). Employment Status. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table S2301*. Retrieved February 19, 2026, from https://data.census.gov/table.
   * [6] U.S. Census Bureau. (2024). Housing Costs as a Percentage of Household Income in the Past 12 Months. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B25140*. Retrieved February 19, 2026, from https://data.census.gov/table.
   * [7] U.S. Census Bureau. (2024). Households and Families. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table S1101*. Retrieved February 19, 2026, from https://data.census.gov/table.
-  * [8] U.S. Census Bureau. (2024). Educational Attainment for the Population 25 Years and Older. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B15003*. Retrieved February 19, 2026, from https://data.census.gov/table.
-  * [9] U.S. Census Bureau. (2024). Limited English Speaking Households. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table S1602*. Retrieved February 19, 2026, from https://data.census.gov/table.
-  * [10] U.S. Census Bureau. (2024). Selected Social Characteristics in the United States. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table DP02*. Retrieved February 19, 2026, from https://data.census.gov/table.
-  * [11] U.S. Census Bureau. (2024). Age and Sex. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table S0101*. Retrieved February 19, 2026, from https://data.census.gov/table.
-  * [12] U.S. Census Bureau. (2024). Sex by Age by Disability Status. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B18101*. Retrieved February 19, 2026, from https://data.census.gov/table.
-  * [13] U.S. Census Bureau. (2024). Health Insurance Coverage Status by Sex by Age. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B27001*. Retrieved February 19, 2026, from https://data.census.gov/table.
-  * [14] National Center for Health Statistics. (2019). U.S. Life Expectancy at Birth by State and Census Tract - 2010-2015. U.S. Centers for Disease Control and Prevention. Retrieved February 19, 2026, from https://data.cdc.gov/d/5h56-n989.
-  * [15] U.S. Environmental Protection Agency. (2026). NPL Superfund Site Boundaries. U.S. Environmental Protection Agency, Office of Land and Emergency Management. Retrieved February 19, 2026, from https://catalog.data.gov/dataset/npl-superfund-site-boundaries-epa10.
-  * [16] U.S. Environmental Protection Agency. (2026). RCRAInfo. U.S. Environmental Protection Agency, Enforcement and Compliance History Online (ECHO). Retrieved February 19, 2026, from https://echo.epa.gov/tools/data-downloads#hazardouswaste.
+  * [8] U.S. Census Bureau. (2024). Plumbing Facilities for All Housing Units. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B25047*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [9] U.S. Census Bureau. (2024). Tenure by Occupants per Room. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B25014*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [10] U.S. Census Bureau. (2024). Educational Attainment for the Population 25 Years and Older. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B15003*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [11] U.S. Census Bureau. (2024). Limited English Speaking Households. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table S1602*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [12] U.S. Census Bureau. (2024). Selected Social Characteristics in the United States. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table DP02*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [13] U.S. Census Bureau. (2024). Age and Sex. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table S0101*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [14] U.S. Census Bureau. (2024). Sex by Age by Disability Status. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B18101*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [15] U.S. Census Bureau. (2024). Health Insurance Coverage Status by Sex by Age. *American Community Survey 2024, ACS 1-Year Estimates Detailed Tables, Table B27001*. Retrieved February 19, 2026, from https://data.census.gov/table.
+  * [16] National Center for Health Statistics. (2019). U.S. Life Expectancy at Birth by State and Census Tract - 2010-2015. U.S. Centers for Disease Control and Prevention. Retrieved February 19, 2026, from https://data.cdc.gov/d/5h56-n989.
+  * [17] U.S. Environmental Protection Agency. (2024). Toxic Release Inventory (TRI) Basic Data Files: Calendar Years 1987-Present. U.S. Environmental Protection Agency. Retrieved February 19, 2026, from https://www.epa.gov/toxics-release-inventory-tri-program/tri-basic-data-files-calendar-years-1987-present.
+  * [18] U.S. Environmental Protection Agency. (2026). NPL Superfund Site Boundaries. U.S. Environmental Protection Agency, Office of Land and Emergency Management. Retrieved February 19, 2026, from https://catalog.data.gov/dataset/npl-superfund-site-boundaries-epa10.
+  * [19] U.S. Environmental Protection Agency. (2026). RCRAInfo. U.S. Environmental Protection Agency, Enforcement and Compliance History Online (ECHO). Retrieved February 19, 2026, from https://echo.epa.gov/tools/data-downloads#hazardouswaste.
