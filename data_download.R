@@ -762,19 +762,31 @@ tampabay %>%
 
 # ---- *---- Download ----
 
-# API URL (filtered for the most recent year of data, 2024)
-url <-"https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_US/csv"
+# API URL - Florida (filtered for the most recent year of data, 2024)
+url <-"https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_FL/csv"
 
 # Download CSV and convert to data frame
-options(timeout = 600)  # 10 minutes
-TRI <- read.csv(url, stringsAsFactors = FALSE)
+options(timeout = 300)  # 5 minutes
+triFL <- read.csv(url, stringsAsFactors = FALSE)
+
+# API URL - Georgia (filtered for the most recent year of data, 2024)
+url <-"https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_GA/csv"
+
+# Download CSV and convert to data frame
+options(timeout = 300)  # 5 minutes
+triGA <- read.csv(url, stringsAsFactors = FALSE)
+
+# API URL - Alabama (filtered for the most recent year of data, 2024)
+url <-"https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_AL/csv"
+
+# Download CSV and convert to data frame
+options(timeout = 300)  # 5 minutes
+triAL <- read.csv(url, stringsAsFactors = FALSE)
 
 
 # ---- *---- Clean ----
 
-TRI <- TRI %>%
-  # remove states other than Florida, Alabama, and Georgia
-  filter(X8..ST == "FL" | X8..ST == "AL" | X8..ST == "GA") %>%
+TRI <- rbind(triFL, triGA, triAL) %>%
   # remove sites with no location data
   filter(!is.na(X13..LONGITUDE) & !is.na(X12..LATITUDE))
 
@@ -971,20 +983,23 @@ df_hazwaste <- left_join(tractsbuff, joined, by = 'GEOID') %>%
 # Combine data for each tract, allowing NAs if data unavailable for certain tracts
 merged_data <- df_population %>%
   full_join(df_income, by = "tract") %>%
+  full_join(df_costs, by = "tract") %>%
+  full_join(df_uninsured, by = "tract") %>%
   full_join(df_ssi, by = "tract") %>%
   full_join(df_unemployed, by = "tract") %>%
-  full_join(df_costs, by = "tract") %>%
   full_join(df_mobile, by = "tract") %>%
-  full_join(df_education, by = "tract") %>%
-  full_join(df_language, by = "tract") %>%
-  full_join(df_single, by = "tract") %>%
-  full_join(df_age, by = "tract") %>%
+  full_join(df_plumbing, by = "tract") %>%
+  full_join(df_overcrowded, by = "tract") %>%
   full_join(df_disabled, by = "tract") %>%
-  full_join(df_uninsured, by = "tract") %>%
+  full_join(df_age, by = "tract") %>%
+  full_join(df_language, by = "tract") %>%
+  full_join(df_education, by = "tract") %>%
+  full_join(df_single, by = "tract") %>%
   full_join(df_lifeexpect, by = "tract") %>%
-  full_join(df_air, by = "tract") %>%
+  full_join(df_tri, by = "tract") %>%
   full_join(df_superfunds, by = "tract") %>%
-  full_join(df_hazwaste, by = "tract")
+  full_join(df_hazwaste, by = "tract") %>%
+  full_join(df_air, by = "tract")
 
 # Save for future use (only need to do once)
 # dir.create("data", recursive = TRUE, showWarnings = FALSE)
