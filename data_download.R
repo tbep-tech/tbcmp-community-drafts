@@ -223,6 +223,72 @@ df_mobile <- df_mobile %>%
 
 
 
+# ---- *-- Incomplete Plumbing ----
+
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B25047)&ucgid=pseudo(0400000US12$1400000)"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_plumbing <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_plumbing) <- col_names
+
+# ---- *---- Clean ----
+
+df_plumbing <- df_plumbing %>%
+  mutate(across(c(B25047_001E,B25047_003E),
+                as.numeric)) %>%
+  # calculate % of households lacking complete plumbing facilities
+  mutate(plumbing = B25047_003E/B25047_001E*100) %>%
+  rename(tract = GEO_ID) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, plumbing)
+
+
+
+# ---- *-- Overcrowding ----
+
+
+# ---- *---- Download ----
+
+# API URL
+url <- paste0(
+  "https://api.census.gov/data/2024/acs/acs5?get=group(B25014)&ucgid=pseudo(0400000US12$1400000)"
+)
+
+# Download data
+response <- GET(url)
+stop_for_status(response)
+content_txt <- content(response, as = "text", encoding = "UTF-8")
+json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
+col_names <- unlist(json_raw[[1]])
+data_rows <- json_raw[-1]
+df_overcrowded <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
+colnames(df_overcrowded) <- col_names
+
+# ---- *---- Clean ----
+
+df_overcrowded <- df_overcrowded %>%
+  mutate(across(c(B25014_001E,B25014_005E,B25014_006E,B25014_007E,B25014_011E,B25014_012E,B25014_013E),
+                as.numeric)) %>%
+  # calculate % of households with more than 1 occupant per room
+  mutate(overcrowded = (B25014_005E+B25014_006E+B25014_007E+B25014_011E+B25014_012E+B25014_013E)/B25014_001E*100) %>%
+  rename(tract = GEO_ID) %>%
+  mutate(tract = substr(tract, 10, nchar(tract))) %>% 
+  select(tract, overcrowded)
+
+
+
 
 # ---- *-- Limited Education ----
 
@@ -689,6 +755,67 @@ tampabay %>%
 
 
 # ---- Download and clean tract-level data from the Environmental Protection Agency (EPA) ----
+
+
+# ---- *-- Toxic Release Inventory (TRI) Sites (2024) ----
+
+
+# ---- *---- Download ----
+
+# API URL (filtered for the most recent year of data, 2024)
+url <-"https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_US/csv"
+
+# Download CSV and convert to data frame
+options(timeout = 600)  # 10 minutes
+TRI <- read.csv(url, stringsAsFactors = FALSE)
+
+
+# ---- *---- Clean ----
+
+TRI <- TRI %>%
+  # remove states other than Florida, Alabama, and Georgia
+  filter(X8..ST == "FL" | X8..ST == "AL" | X8..ST == "GA") %>%
+  # remove sites with no location data
+  filter(!is.na(X13..LONGITUDE) & !is.na(X12..LATITUDE))
+
+# Convert to points
+TRIpoints <- st_as_sf(TRI, coords = c("X13..LONGITUDE", "X12..LATITUDE"), crs = 4326) %>%
+  # project to NAD83 / Florida West (ftUS)
+  st_transform(2236)
+
+# Re-project the Florida census tracts
+tracts <- tract_sf %>%
+  # keep only census tracts in Florida
+  filter(STATE_NAME == "Florida") %>%
+  # project to NAD83 / Florida West (ftUS)
+  st_transform(2236)
+
+# Create a 3 mile (15,840 ft) buffer around census tracts
+tractsbuff <- st_buffer(tracts, dist = 15840, endCapStyle = "ROUND") %>%
+  st_make_valid()
+
+# Calculate number of TRI sites within 3 miles
+tractsbuff$tri_N <- lengths(st_intersects(tractsbuff, TRIpoints))
+
+# Calculate distance to nearest hazardous waste site
+nearest <- st_nearest_feature(tracts, TRIpoints)
+distance <- st_distance(tracts, TRIpoints[nearest,], by_element=TRUE)
+joined <- cbind(tracts, st_drop_geometry(TRIpoints)[nearest,]) %>%
+  mutate(tri_ft = distance) %>%
+  as.data.frame() %>%
+  # keep only the necessary data
+  select(GEOID, tri_ft)
+
+# Create proximity metric
+df_tri <- left_join(tractsbuff, joined, by = 'GEOID') %>%
+  as.data.frame() %>%
+  mutate(tri = ifelse(tri_N > 0, tri_N/15840, 1/tri_ft)) %>%
+  rename(tract = GEOID) %>%
+  select(tract, tri)
+
+
+
+
 
 
 # ---- *-- NPL Superfund Sites (2026) ----
