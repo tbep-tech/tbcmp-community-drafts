@@ -187,7 +187,7 @@ map <- tampabay_metrics_wgs84 %>%
     fillOpacity = 0.7,
     weight = 0.5,
     opacity = 1,
-    color = "white",
+    color = "black",
     popup = ~paste0(
       "<div style='
     font-family: Arial, sans-serif;
