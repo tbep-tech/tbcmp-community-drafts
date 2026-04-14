@@ -41,6 +41,7 @@ data_rows <- json_raw[-1]
 # Bind rows into data frame
 df_population <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_population) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -69,7 +70,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -77,6 +85,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_income <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_income) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -102,7 +111,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -110,6 +126,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_ssi <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_ssi) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -136,7 +153,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -144,6 +168,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_unemployed <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_unemployed) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -168,7 +193,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -176,6 +208,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_costs <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_costs) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -202,7 +235,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -210,6 +250,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_mobile <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_mobile) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -234,7 +275,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -242,6 +290,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_plumbing <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_plumbing) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -267,7 +316,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -275,6 +331,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_overcrowded <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_overcrowded) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -301,7 +358,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -309,6 +373,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_education <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_education) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -337,7 +402,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -345,6 +417,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_language <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_language) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -397,6 +470,7 @@ get_county_data <- function(full_fips) {
   data_rows <- json_raw[-1]
   df <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
   colnames(df) <- col_names
+  rm(data_rows, json_raw, response, content_txt)
   
   # ---- Clean ----
   df <- df %>%
@@ -436,7 +510,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -444,6 +525,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_age <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_age) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -470,7 +552,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -478,6 +567,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_disabled <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_disabled) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -505,7 +595,14 @@ url <- paste0(
 )
 
 # Download data
-response <- GET(url)
+response <- RETRY(
+  "GET",
+  url,
+  timeout(120),        # 2 minutes max per attempt
+  times = 10,          # retry up to 10 times
+  pause_base = 5,      # wait 5 sec between retries
+  pause_cap = 60       # max wait between retries
+)
 stop_for_status(response)
 content_txt <- content(response, as = "text", encoding = "UTF-8")
 json_raw <- fromJSON(content_txt, simplifyVector = FALSE)
@@ -513,6 +610,7 @@ col_names <- unlist(json_raw[[1]])
 data_rows <- json_raw[-1]
 df_uninsured <- as.data.frame(do.call(rbind, data_rows), stringsAsFactors = FALSE)
 colnames(df_uninsured) <- col_names
+rm(data_rows, json_raw, response, content_txt)
 
 # ---- *---- Clean ----
 
@@ -985,21 +1083,21 @@ merged_data <- df_population %>%
   full_join(df_income, by = "tract") %>%
   full_join(df_costs, by = "tract") %>%
   full_join(df_uninsured, by = "tract") %>%
-  full_join(df_ssi, by = "tract") %>%
-  full_join(df_unemployed, by = "tract") %>%
+#  full_join(df_ssi, by = "tract") %>%
+#  full_join(df_unemployed, by = "tract") %>%
   full_join(df_mobile, by = "tract") %>%
   full_join(df_plumbing, by = "tract") %>%
   full_join(df_overcrowded, by = "tract") %>%
   full_join(df_disabled, by = "tract") %>%
   full_join(df_age, by = "tract") %>%
   full_join(df_language, by = "tract") %>%
-  full_join(df_education, by = "tract") %>%
-  full_join(df_single, by = "tract") %>%
-  full_join(df_lifeexpect, by = "tract") %>%
+#  full_join(df_education, by = "tract") %>%
+#  full_join(df_single, by = "tract") %>%
+#  full_join(df_lifeexpect, by = "tract") %>%
   full_join(df_tri, by = "tract") %>%
   full_join(df_superfunds, by = "tract") %>%
-  full_join(df_hazwaste, by = "tract") %>%
-  full_join(df_air, by = "tract")
+  full_join(df_hazwaste, by = "tract")
+#  full_join(df_air, by = "tract")
 
 # Save for future use (only need to do once)
 # dir.create("data", recursive = TRUE, showWarnings = FALSE)
