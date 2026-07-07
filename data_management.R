@@ -383,7 +383,8 @@ comparison <- sync(map1, map2) %>%
   )}
 
 # Save the leaflet map as an HTML file that can be shared for easy viewing outside of R
-#save_html(comparison,"github_map/index.html",libdir = "lib")
+dir.create("github_map", showWarnings = FALSE)
+save_html(comparison,"github_map/index.html",libdir = "lib")
 
 
 
