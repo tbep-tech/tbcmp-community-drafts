@@ -363,3 +363,37 @@ community_map2 <- tampabay_metrics2_wgs84
 library(htmlwidgets)
 #saveWidget(map2, "community_map2.html", selfcontained = TRUE)
 
+
+# ---- * Create Maps for Method Comparisons ----
+
+library(leafsync)
+library(htmltools)
+
+comparison <- sync(map1, map2) %>%
+  {tagList(
+    tags$style(
+      "html, body { height: 100%; margin: 0; }
+       .leaflet { height: 700px !important; }"),
+    tags$div(
+      style = "display:flex;justify-content:space-around;font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    font-size:18px;font-weight:bold;color:#333;",
+      tags$div("Method 1 (All Dimensions Considered Equally)"),
+      tags$div("Method 2 (Demographic, Economic, or Household Dimension Required)")),
+    .
+  )}
+
+# Save the leaflet map as an HTML file that can be shared for easy viewing outside of R
+#save_html(comparison, "comparison_map.html")
+
+
+
+
+
+
+
+
+
+
+
+
+
