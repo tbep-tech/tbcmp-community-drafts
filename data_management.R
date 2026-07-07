@@ -257,7 +257,7 @@ tampabay_metrics2 <- tampabay_metrics %>%
            (burden_superfunds*0.5) + 
            (burden_hazwaste*0.5)) %>%
   # if there are only environmental burdens present, assign a vulnerability score of 0, otherwise keep the score
-  mutate(vulnerability = ifelse(rowSums(across(burden_income:txt_language) == 1) > 0, vulnerability, 0)) %>%
+  mutate(vulnerability = ifelse(rowSums(across(burden_income:burden_language) == 1) > 0, vulnerability, 0)) %>%
   mutate(txt_income = ifelse(burden_income == 1, "Low income", NA),
          txt_costs = ifelse(burden_costs == 1, "Housing cost stress", NA),
          txt_uninsured = ifelse(burden_uninsured == 1, "Lacking health insurance", NA),
